@@ -48,8 +48,6 @@ export default {
     this.$api.PersonalizedNewSong()
       .then( res => {
         this.List = res.data.result;
-        let obj = this.storeId(this.List)
-        this.songsList(obj)
       })
   },
   methods: {
@@ -77,11 +75,13 @@ export default {
     playSong(id,alid,index){
       this.getSongId(id)
       let obj = {};
+      let songList = this.storeId(this.List)
       obj.id = id;
       obj.alid = alid;
       obj.index = index;
       this.currentSong(obj)
       this.getSongUrl();
+      this.songsList(songList)
     },
 
     // 存储音乐id

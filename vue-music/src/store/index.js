@@ -6,7 +6,8 @@ import mutations from './mutations'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  state: sessionStorage.getItem('state') ? JSON.parse(sessionStorage.getItem('state')):{
+  state: 
+  sessionStorage.getItem('state') ? JSON.parse(sessionStorage.getItem('state')):{
     status: false,
     playing: false,
     uid: '',

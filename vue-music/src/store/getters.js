@@ -10,5 +10,5 @@ export default{
   },
   getPlayerMode(state){
     return mode => state.playMode = mode;
-  }
+  },
 }

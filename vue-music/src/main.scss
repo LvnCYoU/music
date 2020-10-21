@@ -41,3 +41,21 @@ body,html,ul,li,p{
 .shadow{
   box-shadow: 2px 2px 20px rgba(0,0,0,.3);
 }
+
+@keyframes fly {
+  0%{
+    transform: translateY(0);
+  }
+  25%{
+    transform: translateY(50%);
+  }
+  50%{
+    transform: translateY(90%);
+  }
+  75%{
+    transform: translateY(50%);
+  }
+  100%{
+    transform: translateY(0);
+  }
+}
