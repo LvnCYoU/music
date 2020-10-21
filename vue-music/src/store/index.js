@@ -14,6 +14,7 @@ export default new Vuex.Store({
     songId: null,
     currentSong: {},
     songList: [],
+    playMode: 'loop',
   },
   getters,
   mutations,

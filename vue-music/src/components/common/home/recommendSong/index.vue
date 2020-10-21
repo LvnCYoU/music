@@ -89,11 +89,9 @@ export default {
       let arr = [];
       list.forEach((value,index) => {
         let obj = {}
-        obj.id = value.id
+        obj.alid = value.song.album.id;
+        obj.id = value.id;
         obj.song = value.name;
-        obj.img = value.picUrl;
-        obj.dt = value.song.duration;
-        obj.durationTime = this.utils.formatTime(value.song.duration);
         obj.singer = value.song.artists.length > 1 ? 
           this.getSinger(value.song) : 
           value.song.artists[0].name
@@ -111,7 +109,6 @@ export default {
       })
       this.$api.SongUrl(str)
         .then(res => {
-          console.log(res,this.songList.length)
           let arr = [];
           this.songList.map( (list,index) => {
             res.data.data.map( item => {
@@ -155,7 +152,6 @@ export default {
         position: relative;
         height: 80px;
         padding-left: 2%;
-
         border-radius: 5px;
         justify-content: start;
         background: #fff;

@@ -36,7 +36,6 @@ export default{
   },
   // 歌词处理
   Lyric(str){
-    console.log(str)
     let arr = [];
     const reg = /\[(\d{2}):(\d{2}).(\d{3})]/g;
     str.split('\n').map( list => {
@@ -45,9 +44,11 @@ export default{
       obj.lyric = list.replace(reg,'');
       time = reg.exec(list);
       obj.time = this.formatTime(time);
-      console.log(obj.time)
       if(obj.lyric && obj.time) arr.push(obj);
     });
+    arr.forEach( (list,index) => {
+      list.index = index
+    })
     return arr
   }
 }

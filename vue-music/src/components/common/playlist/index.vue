@@ -36,7 +36,6 @@ export default {
     ...mapState(['songList'])
   },
   mounted(){
-    console.log(this.$refs.audio1)
     // this.$refs.audio.src = 'http://m701.music.126.net/20201009165656/7df5fab14ff522f74f23083d57481e87/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/4334125381/0f44/79e8/6688/9d1e308b3ad55f8012d74b108c42cabf.mp3'
 
   },
@@ -45,7 +44,6 @@ export default {
       this.$refs.audio.volume = this.value1;
     },
     t(){
-      console.log(this.$refs.audio1.volume)
     }
   }
 }

@@ -7,5 +7,8 @@ export default{
   },
   getCurrentSong(state){
     return state.currentSong;
+  },
+  getPlayerMode(state){
+    return mode => state.playMode = mode;
   }
 }

@@ -101,7 +101,6 @@ export default {
         this.$refs.userImg.src = this.url
       })
       .catch( () => {
-        console.log('LoginRefresh')
         return this.status = false;
       })
   },

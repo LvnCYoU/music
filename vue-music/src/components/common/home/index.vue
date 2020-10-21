@@ -25,9 +25,7 @@ export default {
     
   },
   methods:{
-    test(){
-      console.log(this.banners)
-    }
+    
 
   }
 }
