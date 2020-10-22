@@ -16,5 +16,8 @@ export default{
   },
   SONG_LIST(state,list){
     return state.songList = list;
+  },
+  AUDIO_INIT(state,obj){
+    return state.audio = obj;
   }
 }

@@ -14,6 +14,7 @@ export default new Vuex.Store({
     songUrl: '',
     songId: null,
     currentSong: {},
+    audio: {},
     songList: [],
     playMode: 'loop',
   },
@@ -28,7 +29,10 @@ export default new Vuex.Store({
     },
     songsList({commit},list){
       commit('SONG_LIST',list)
-    }
+    },
+    audioInit({commit},obj){
+      commit('AUDIO_INIT',obj)
+    },
   },
   modules: {
   }

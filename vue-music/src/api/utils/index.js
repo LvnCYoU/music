@@ -37,7 +37,8 @@ export default{
   // 歌词处理
   Lyric(str){
     let arr = [];
-    const reg = /\[(\d{2}):(\d{2}).(\d{3})]/g;
+    const reg = /\[(\d{2}):(\d{2}).(\d{3}|\d{2})]/g;
+
     str.split('\n').map( list => {
       let obj = {};
       let time;

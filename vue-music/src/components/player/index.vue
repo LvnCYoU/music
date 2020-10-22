@@ -44,14 +44,15 @@
       </div>  
       <div class="tool-box">
         <i class="iconfont icon-xunhuanbofang" title="循环播放" ref="playerMode" @click="changeMode"></i>
-        <i class="iconfont icon-gecitiaozheng" title="歌词" @click="showList($refs.lyricBox)"></i>
-        <i class="iconfont icon-gedan" title="播放列表" @click="showList($refs.songBox)"></i>
+        <i class="iconfont icon-gecitiaozheng" title="歌词" @click="showList"></i>
+        <i class="iconfont icon-gedan" title="播放列表" @click="showList"></i>
       </div>
-      <transition name="el-zoom-in-bottom">
+      <transition name="fade" mode="out-in">
         <div 
           class="lyric-box shadow" 
           @wheel.stop.prevent
           ref="lyricBox"
+          v-show="showLyric"
         >
           <scroll 
             class="lyric" 
@@ -66,11 +67,12 @@
           </scroll>
         </div>
       </transition>
-      <transition name="el-zoom-in-bottom">
+      <transition name="fade" mode="out-in">
         <div 
           class="songlist-box shadow" 
           @wheel.stop.prevent
           ref="songBox"
+          v-show="showPlayList"
         >
           <div class="title">
             <h2>播放列表</h2>
@@ -134,6 +136,8 @@ export default {
         old: 0,
       },
       mode: 'loop',
+      showLyric: false,
+      showPlayList: false,
     }
   },
   components:{
@@ -150,40 +154,55 @@ export default {
       this.$nextTick( () => {
         this.status = true;
         this.currentSongInfo(id,this.getCurrentSong.alid);
-
-        
       })
     },
   },
   mounted(){
-    let dom = this.$refs.playerMode;
-    this.audio = this.$refs.playingBox;
-    this.mode = this.playMode
-    if(this.mode === 'loop'){
-      dom.className = 'iconfont icon-xunhuanbofang'
-      dom.title = '循环播放'
-    }
-    else if(this.mode === 'once'){
-      dom.className = 'iconfont icon-danquxunhuan'
-      dom.title = '单曲循环'
-    }
-    else if(this.mode === 'random'){
-      dom.className = 'iconfont icon-suijibofang'
-      dom.title = '随机播放'
-    }
+    this.init();
   },
 
   methods:{
     ...mapMutations(['showPlayer']),
-    ...mapActions(['changeSongUrl','currentSong','songsList']),
+    ...mapActions(['changeSongUrl','currentSong','songsList','audioInit']),
     test(){
       this.changeTime = false;
     },
     test1(){
       this.changeTime = true;
     },
+    // 样式初始化
+    init(){
+      let dom = this.$refs.playerMode;
+      this.audio = this.$refs.playingBox;
+      this.mode = this.playMode
+      let obj = {};
+      obj.audio = this.audio;
+      obj.playBtn = this.$refs.playing;
+      obj.status = this.$refs.listStatus;
+      obj.wrap = this.$refs.listWrap;
+      this.audioInit(obj);
+      if(this.mode === 'loop'){
+        dom.className = 'iconfont icon-xunhuanbofang'
+        dom.title = '循环播放'
+      }
+      else if(this.mode === 'once'){
+        dom.className = 'iconfont icon-danquxunhuan'
+        dom.title = '单曲循环'
+      }
+      else if(this.mode === 'random'){
+        dom.className = 'iconfont icon-suijibofang'
+        dom.title = '随机播放'
+      }
+      if(this.getCurrentSong.lyric){
+        let arr = [];
+        let lyric = []
+        lyric.lyric = '暂无歌词，敬请见谅';
+        arr.push(lyric);
+        this.getCurrentSong.lyric = arr
+      }
+    },
 
-    // 初始化
+    // 歌曲信息初始化
     async currentSongInfo(id,alid){
       let _this = this;
       await this.$api.axios.all([
@@ -207,6 +226,11 @@ export default {
               obj.song = resAlbum.data.album.name;
               obj.singer = resAlbum.data.album.artist.name
               obj.lyric = _this.utils.Lyric(resLyric.data.lrc.lyric)
+              if(!obj.lyric.length){
+                let arr = [];
+                arr.lyric = '暂无歌词，敬请见谅';
+                obj.lyric.push(arr);
+              }
               _this.currentSong(obj);
               if(_this.getCurrentSong.singer){  
                 _this.showPlayer();
@@ -216,6 +240,7 @@ export default {
         this.playing() 
       }
     },
+    
     // 上一首
     propSong(){
       let index = this.getCurrentSong.index;
@@ -236,18 +261,16 @@ export default {
 
     // 播放
     playing(){
-
       if(this.status){
         this.$refs.playing.className = 'iconfont icon-zanting'
         this.audio.play();
-        this.currentPlayList();
       }
       if(!this.status){
         this.$refs.playing.className = 'iconfont icon-bofang'
         this.audio.pause();
       }
+      this.currentPlayList();
       this.status = !this.status
-      
     },
 
     // 歌曲播放完毕
@@ -299,6 +322,7 @@ export default {
       let len = this.getCurrentSong.lyric.length;
       this.time = this.audio.currentTime * 1000;
       if( this.lineNo == len) return;
+      if(this.getCurrentSong.lyric.length == 1 || !this.getCurrentSong.lyric.length) return;
       if(parseFloat(this.getCurrentSong.lyric[this.lineNo].time) <= this.time){
         this.lineHigh(); //高亮当前行
         this.propLine = this.lineNo;
@@ -349,11 +373,14 @@ export default {
     },
     
     // 展示 歌词/播放列表
-    showList(dom){
-      if(!dom.style.display || dom.style.display == 'none'){
-        dom.style.display = 'inline-block'
-      }else{
-        dom.style.display = 'none'
+    showList(e){
+      if(e.target.className.indexOf('icon-gedan') > 1){
+        if(this.showLyric) this.showLyric = false;
+        this.showPlayList = !this.showPlayList;
+      }
+      if(e.target.className.indexOf('icon-gecitiaozheng') > 1){
+        if(this.showPlayList) this.showPlayList = false;
+        this.showLyric = !this.showLyric;
       }
       this.$nextTick( () => {
         this.$refs.lyricList.refresh();
@@ -363,6 +390,7 @@ export default {
 
     // 高亮当前歌词
     lineHigh() {
+      if(this.getCurrentSong.lyric.length == 1) return ;
       let ul = this.$refs.lyricWrap;
       let lis = this.$refs.line;
       ul.style.transitionDuration = '1000ms'
@@ -448,15 +476,23 @@ export default {
         status.some( current => { 
           if(current.className == 'iconfont icon-zanting'){
             current.className = 'iconfont icon-bofang'
+            return true;
           }
         })
         wrap.some( current => {
           if(current.className == 'wrapper is-active'){
             current.classList.remove('is-active');
+            return true;
           }
         })
-        status[this.getCurrentSong.index].className = 'iconfont icon-zanting'
-        wrap[this.getCurrentSong.index].classList.add("is-active");
+        if(this.status){
+          status[this.getCurrentSong.index].className = 'iconfont icon-zanting'
+          wrap[this.getCurrentSong.index].classList.add("is-active");
+        }
+        else{
+          status[this.getCurrentSong.index].className = 'iconfont icon-bofang'
+          wrap[this.getCurrentSong.index].classList.remove("is-active");
+        }
       }
     },
 
@@ -485,7 +521,6 @@ export default {
     padding-left: 20px;
     padding-right: 10px;
     box-sizing: border-box;
-    transition: all 1s ease;
     .song-image,img{
       display: inline-block;
       margin-right: 30px;
@@ -599,7 +634,6 @@ export default {
       right: 0;
       bottom: 80px;
       padding: 44px 30px;
-      display: none;
       width: 360px;
       height: 500px;
       border-radius: 3px;
@@ -611,6 +645,7 @@ export default {
         height: 100%;
         overflow: hidden;
         .wrapper{
+          font-size: 12px;
           transition-duration: 600ms;
           p{
             padding: 5px 0;
@@ -760,5 +795,13 @@ export default {
       }
     }
   }
+  .fade-enter-active,.fade-leave-active{
+    transition: all .6s ease;
+  }
+  .fade-enter , .fade-leave-to{
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
 </style>
 

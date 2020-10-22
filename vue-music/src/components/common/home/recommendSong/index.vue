@@ -2,12 +2,18 @@
   <div class="recommend-song">
     <h2 class="title">推荐新歌</h2>
     <div class="list">
-      <div class="item" v-for="(item,index) in List" :key="item.id">
+      <div class="item" v-for="(item,index) in List" :key="item.id" ref="play_list">
         <div class="wrapper flex-center" @click="playSong(item.id,item.song.album.id,index)">
           <div class="index flex-center">
             <span>{{ index + 1 }}</span>
-            <i class="el-icon-video-play"></i>
-            <i class="el-icon-video-pause"></i>
+            <i class="el-icon-video-play" ref="play_btn"></i>
+            <div class="play-animation">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
           </div>
           <div class="album">
             <el-image :src="item.picUrl" fit="cover"></el-image>
@@ -33,6 +39,7 @@
 </template>
 <script>
 import {mapActions,mapGetters,mapState} from 'vuex'
+import {playing} from '../../../../api/audio'
 export default {
   data(){
     return {
@@ -41,14 +48,36 @@ export default {
     }
   },
   computed:{
-    ...mapGetters(['getSongId']),
-    ...mapState(['songList']),
+    ...mapGetters(['getSongId','getCurrentSong']),
+    ...mapState(['songList','songId','audio']),
   },
   created(){
     this.$api.PersonalizedNewSong()
       .then( res => {
         this.List = res.data.result;
       })
+  },
+  watch: {
+    songId(id){
+      this.List.some( (list,index) => {
+        if(list.id == id){
+          this.$refs.play_list.some( item => {
+            if(item.className.indexOf('is-active') > 1){
+              item.classList.remove('is-active');
+            }
+          })
+          this.$refs.play_btn.some( item => {
+            if(item.className == 'el-icon-video-pause'){
+              item.className = 'el-icon-video-play';
+            }
+          })
+          this.$refs.play_list[index].classList.add('is-active');
+          this.$refs.play_btn[index].className = 'el-icon-video-pause';
+          return true;
+        }
+      })
+    }
+    
   },
   methods: {
     ...mapActions([
@@ -82,6 +111,26 @@ export default {
       this.currentSong(obj)
       this.getSongUrl();
       this.songsList(songList)
+      if(id == this.getCurrentSong.id){
+        if(!this.audio.audio.paused){
+          this.$refs.play_list.some( item => {
+            if(item.className.indexOf('is-active') > 1){
+              item.classList.remove('is-active');
+            }
+          })
+          this.$refs.play_btn.some( item => {
+            if(item.className == 'el-icon-video-pause'){
+              item.className = 'el-icon-video-play';
+            }
+          })
+        }else{
+           this.$refs.play_list[index].classList.add('is-active');
+          this.$refs.play_btn[index].className = 'el-icon-video-pause';
+        }
+        playing(this.audio);
+      }
+      
+      
     },
 
     // 存储音乐id
@@ -101,7 +150,7 @@ export default {
       return arr
     },
 
-    // 获取音乐url
+    // 获取音乐url  
     getSongUrl(){
       let str = ''
       this.songList.map( (list,index) => {
@@ -120,8 +169,13 @@ export default {
           })
 
         })
-    }
-  }
+    },
+
+    // 播放动画
+    // animation(id){
+      
+    // }
+  },
 }
 </script>
 <style lang="scss" scoped>
@@ -148,6 +202,33 @@ export default {
       &:nth-child(even){
         padding-left: 30px;
       }
+      &.is-active:hover{
+        .wrapper{
+          .index{
+            .play-animation{
+              display: none;
+            }
+          }
+        }
+        
+      }
+      &.is-active{
+        .wrapper{
+          .index{
+            span{
+              display: none;
+            }
+            .play-animation{
+              display: flex;
+              span{
+                display: block;
+              }
+            }
+          }
+        }
+        
+        
+      }
       .wrapper{
         position: relative;
         height: 80px;
@@ -162,13 +243,31 @@ export default {
           span{
             display: none;
           }
-          .el-icon-video-play{
+          .el-icon-video-play,.el-icon-video-pause{
             display: block;
           }
         }
         .index{
           width: 30px;
           margin-right: 20px;
+          .play-animation{
+            margin-right: 0;
+            display: none;
+            height: 16px;
+            min-width: 18px;
+            overflow: hidden;
+            span{
+              animation: fly 2s infinite linear;
+              width: 2px;
+              height: 100%;
+              margin-left: 2px;
+              background: #fa2800;
+              &:nth-child(1) { animation-delay: -1s }
+              &:nth-child(3) { animation-delay: -1.5s }
+              &:nth-child(4) { animation-delay: -0.9s }
+              &:nth-child(5) { animation-delay: -0.6s }
+            }
+          }
           span{
             font-size: 15px;
             color: #4a4a4a;
@@ -182,6 +281,7 @@ export default {
           span,i{
             transition: all 1s;
           }
+
         }
         .album{
           position: relative;
