@@ -22,8 +22,8 @@ export default {
       .then( res => {
         this.banners = res.data.banners;
       })
-      .catch( err => {
-        console.log(err)
+      .catch( () => {
+        return ;
       })
   }
 }

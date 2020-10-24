@@ -52,6 +52,52 @@ export default {
     return api.get(`/album?id=${id}`)
   },
   /**
-   * @method 获取播放列表
+   * @method 获取所有榜单
    */
+  TopList(){
+    return api.post('/toplist');
+  },
+
+  /**
+   * @method 歌单分类
+   */
+  PlaylistCatlist(){
+    return api.post('/playlist/catlist')
+  },
+
+  /**
+   * @method 热门歌单分类
+   */
+  PlaylistHot(){
+    return api.post('playlist/hot');
+  },
+
+  /**
+   * @method 歌单(网友精选碟)
+   */
+  TopPlaylist(num,str){
+    let offset = num ? num * 40 : 0;
+    let order = str || 'hot';
+    return api.get(`/top/playlist?limit=40&offset=${offset}&order=${order}`)
+  },
+
+  /**
+   * @method  精品歌单标签列表
+   */
+  PlaylistHighTags(){
+    return api.post('/playlist/highquality/tags')
+  },
+
+  /**
+   * @method 获取精品歌单
+   */
+  TopPlaylistHigh(str,before){
+    let cat = str || '全部'
+    return api.post('/top/playlist/highquality',{
+      cat,
+      limit: 40,
+      before,
+    })
+  },
+
 }

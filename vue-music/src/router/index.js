@@ -7,7 +7,7 @@ const AppRank = () => import('../components/common/rank');
 const AppSinger = () => import('../components/common/singer');
 const AppMv = () => import('../components/common/MV');
 const AppVideo = () => import('../components/common/video');
-const AppPlayList = () => import('../components/common/playlist');
+const AppSongSheet = () => import('../components/common/songsheet');
 const AppSignIn = () => import('../components/common/signin')
 const AppUser = () => import('../components/common/user');
 // const AppHomePlaylist = () => import('../components/common/home/playlist');
@@ -42,7 +42,7 @@ const router =  new Router({
       }
     },
     {path: '/video', component: AppVideo},
-    {path: '/playlist', component: AppPlayList},
+    {path: '/songsheet', component: AppSongSheet},
     {path: '/signin', component: AppSignIn,},
     {path: '/user', component: AppUser},
     {

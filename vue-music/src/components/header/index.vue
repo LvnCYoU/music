@@ -7,7 +7,7 @@
         <ul class="main">
           <router-link to="/home" tag="a">发现音乐</router-link>
           <router-link to='/rank' tag='a'>排行榜</router-link>
-          <router-link to='/playlist' tag='a'>歌单</router-link>
+          <router-link to='/songsheet' tag='a'>歌单</router-link>
           <router-link to='/singer' tag='a'>歌手</router-link>
           <router-link to='/video' tag='a'>视频</router-link>
           <router-link to='/mv' tag='a'>MV</router-link>
@@ -110,7 +110,6 @@ export default {
       console.log(path,event.target)
     },
     Logout(){
-      console.log(this.$route)
       this.$api.Logout()
         .then( () => {
           this.$store.commit('changeStatus');

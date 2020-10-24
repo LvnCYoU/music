@@ -211,7 +211,7 @@ export default {
         this.$api.Album(alid),
         this.$api.Lyric(id)
       ])
-        .then(this.$api.axios.spread(
+        .then( this.$api.axios.spread(
           function(
             resUrl,
             resDetail,
@@ -288,7 +288,6 @@ export default {
       else {
         let len = this.songList.length - 1;
         let i = ~~(Math.random() * (len - 1));
-        console.log(1)
         if(i == index) this.songEnd();
         else index = i;
       }
@@ -500,7 +499,6 @@ export default {
     delList(){
       let arr = [];
       this.songsList(arr);
-      console.log(this.getCurrentSong);
     }
   }
 
