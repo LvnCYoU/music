@@ -1,5 +1,6 @@
 <template>
   <el-header>
+    <div class="header">
       <div class="container">
         <div class="left">
           <router-link tag="li" to="/" class="logo"><a></a></router-link>
@@ -11,10 +12,7 @@
           <router-link to='/singer' tag='a'>歌手</router-link>
           <router-link to='/video' tag='a'>视频</router-link>
           <router-link to='/mv' tag='a'>MV</router-link>
-        </ul>
-
-        
-        
+        </ul>       
         <el-row class="right">
           <div class="input">
             <el-input
@@ -42,6 +40,8 @@
           </div> 
         </el-row>
       </div>
+    </div>
+
   </el-header>
 </template>
 
@@ -126,11 +126,19 @@ export default {
 
 <style lang="scss" scoped>
   .el-header{
+    
+    .header{
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      width: 100%;
+      z-index: 9999;
+      background: #fff;
+    }
     .container{
       position: relative;
       display: flex;
-      width: 100%;
-      height: 100%;
 
       .left{
         margin-right: 40px;
@@ -157,9 +165,11 @@ export default {
         line-height: 60px;
         font-size: 14px;
         color: #909399;
-
+        align-items: center;
         a{
           margin-right: 40px;
+          height: 50px;
+          line-height: 50px;
           cursor: pointer;
           border-bottom: 2px solid transparent;
           color: #909399;

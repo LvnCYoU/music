@@ -32,6 +32,7 @@ export default {
   .banner{
     margin-top: 40px;
     height: 236px;
+    z-index: -999;
     .el-carousel__container{
       display: flex;
       align-items: center;
