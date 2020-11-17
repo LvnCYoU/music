@@ -1,7 +1,7 @@
 <template>
-  <div class="app">
+  <div class="login">
     <div class="login-wrap">
-      <div class="login">
+      <div class="wrapper">
         <div class="top">
           <div class="logo">
             <img src="../../../assets/logo-a.png" alt="nicemusic">
@@ -10,7 +10,7 @@
           
         </div>
         <div class="center">
-          <el-form :model="userMessage" ref="userMessage" class="" :validate-on-rule-change="false">
+          <el-form :model="userMessage" ref="userMessage" :validate-on-rule-change="false">
             <el-form-item
               prop="phone"
               :rules="[
@@ -18,9 +18,12 @@
                 { type: 'number', message: '起码是数字吧。。。'}
               ]"
             >
-            <el-input type="phone" 
-              v-model.number="userMessage.phone" 
-              autocomplete="off">
+              <el-input 
+                type="phone" 
+                v-model.number="userMessage.phone" 
+                autocomplete="off"
+                maxlength="11"
+              >
                 <i slot="prefix" class="el-input__icon el-icon-phone"></i>
               </el-input>
             </el-form-item>
@@ -42,11 +45,15 @@
           </el-form>
         </div>        
       </div>
+      <audio src="./mp3/Approaching Nirvana - You.mp3" autoplay></audio>
+      <star />
     </div>
   </div>
 </template>
 
 <script>
+import Star from '../star'
+import {mapMutations} from 'vuex'
 export default {
   data(){
     return {
@@ -57,53 +64,64 @@ export default {
       }
     }
   },
-  computed: {
-    count(){
-      return this.$store.state.status;
-    },
+  components: {
+    Star,
   },
-  created(){
-    this.url = this.$route.fullPath.split('?')[1];
+  mounted(){
+    this.init();
   },
   methods:{
-    submit(){
-      let reg = /^1[0-9]{10}$/.test(this.userMessage.phone);
-      this.userMessage.phone && this.userMessage.password
+    ...mapMutations(['CHANGE_STATUS']),
+    
+    init(){
+      this.url = this.$route.fullPath.split('?')[1];
+    },
+
+    // 点击登录
+    async submit(){
+      let duration = 2000;
+      if(this.userMessage.phone && this.userMessage.password){
+        let reg = /^1[0-9]{10}$/.test(this.userMessage.phone);
         if(!reg){
           this.$Message({
             message: '请输入正确的手机号码',
             type: 'error',
-            duration: 2000
+            duration,
           })
         }else{
-          this.$api.PhoneLogin(this.userMessage.phone,this.userMessage.password)
+          await this.$api.PhoneLogin(this.userMessage.phone,this.userMessage.password)
             .then( res => {
               res.data.code > 200 && this.$Message({
                 message: res.data.message,
                 type: 'error',
-                duration: 2000,
+                duration,
               })
               if(res.data.code === 200){
-                this.$store.commit('changeStatus');
-                this.$store.commit('Uid',res.data.account.id);
+                this.CHANGE_STATUS(true);
                 this.$Message({
                   message: '登陆成功',
                   type: 'success',
-                  duration: 2000,
+                  duration,
                 })
-                if(this.url){
-                  this.$router.push({path: '/' + this.url})
-                }else this.$router.push({path:'/home'})
+                this.url ? this.$router.push({path: '/' + this.url}) : this.$router.push({path:'/home'})
               }
             }, () => {
               this.$Message({
                 showClose: true,
                 message: '用户不存在',
                 type: 'error',
-                duration: 2000
+                duration,
               })
             })
         }
+      }else{
+        this.$Message({
+          message: '请输入手机号或密码',
+          type: 'error',
+          duration,
+        })
+      }
+        
     },
     
   }
@@ -111,28 +129,22 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .app{   
-    width: 100%;
-    height: 100%;
-
+  .login{   
     .login-wrap{
-      display: flex;
+      @include flex;
       flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
-      height: 100%;
-      background: #5dd5c8 url('../../../assets/newbg1.png') bottom no-repeat;
-      background-size: cover;
       overflow: hidden;
 
-      .login{
+      .wrapper{
+        @include shadow;
         width: 350px;
         height: 486px;
         background: url('../../../assets/logbg.jpg') #fff bottom no-repeat;
         border-radius: 8px;
-        box-shadow: 1px 2px 15px rgba(0,0,0,.3);
-        
+        z-index: 9;
+        opacity: .1;
+        transition: opacity 1s ease;
         .top{
           margin-top: 44px;
           text-align: center;
@@ -141,20 +153,24 @@ export default {
           }
           p{
             margin: 0 0 45px;
-            font-size: 14px;
-            
           }
         }
 
         .center{
           margin: 0 27px;
           .el-form-item{
+            .el-input input{
+              height: 40px;
+            }
             .el-button{
               width: 100%;
               background: #5dd5c8;
               color: #fff;
             }
           }
+        }
+        &:hover{
+          opacity: 1;
         }
       }
     }

@@ -3,7 +3,9 @@
     <div class="header">
       <div class="container">
         <div class="left">
-          <router-link tag="li" to="/" class="logo"><a></a></router-link>
+          <router-link tag="li" to="/home" class="logo">
+            <img src="../../assets/logo_black.png" alt="">
+          </router-link>
         </div>
         <ul class="main">
           <router-link to="/home" tag="a">发现音乐</router-link>
@@ -14,29 +16,26 @@
           <router-link to='/mv' tag='a'>MV</router-link>
         </ul>       
         <el-row class="right">
-          <div class="input">
-            <el-input
-              placeholder="请输入内容"
-              >
-              <i slot="prefix" class="el-input__icon el-icon-search"></i>
-            </el-input>
+          <div class="search">
+            <search-input></search-input>
           </div>
           <div class="signin">
-            <router-link tag="a" to="/signin" v-show="!status">未登录</router-link>
-            
-            <el-dropdown size="small" v-show="status">
-              <router-link to="/user">
-                <img ref="userImg" class="user-img">
-              </router-link>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item icon="el-icon-user">
-                  <router-link tag="a" to="/user">个人中心</router-link>
-                </el-dropdown-item>
-                <el-dropdown-item icon="el-icon-medal">个人等级</el-dropdown-item>
-                <el-dropdown-item icon="el-icon-setting">设置</el-dropdown-item>
-                <el-dropdown-item icon="el-icon-switch-button" @click.native="Logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
+            <div class="wrapper">
+              <router-link tag="a" to="/signin" v-show="!status">未登录</router-link>
+              <el-dropdown size="small" v-show="status">
+                <router-link :to='{name: "user",query:{id,}}'>
+                  <img :src="url" class="user-img">
+                </router-link>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item icon="el-icon-user">
+                    <router-link tag="a" :to='{name: "user",query:{id,}}'>个人中心</router-link>
+                  </el-dropdown-item>
+                  <el-dropdown-item icon="el-icon-medal">个人等级</el-dropdown-item>
+                  <el-dropdown-item icon="el-icon-setting">设置</el-dropdown-item>
+                  <el-dropdown-item icon="el-icon-switch-button" @click.native="Logout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </div>
           </div> 
         </el-row>
       </div>
@@ -46,13 +45,18 @@
 </template>
 
 <script>
+import {mapMutations} from 'vuex'
+import SearchInput from '../common/input'
 export default {
   data(){
     return{
-      nowPath: '',
       url: '',
-      cookie: [],
+      search: '',
+      id: '',
     }
+  },
+  components: {
+    SearchInput,
   },
   computed: {
     status: {
@@ -61,64 +65,57 @@ export default {
       },
       set(){}
     },
-
   },
-  beforeCreate(){
-    this.$api.LoginStatus()
-      .then( res => {
-        this.url = res.data.profile.avatarUrl;
-        this.$store.commit('Uid',res.data.profile.userId);
+
+
+  mounted(){
+    this.init();
+  },
+
+  methods:{
+    ...mapMutations(['CHANGE_STATUS']),
+
+    init(){
+      this.Cookie();
+    },
+    
+    // 退出登录
+    async Logout(){
+      await this.$api.Logout()
+        .then( () => {
+          this.CHANGE_STATUS(false);
+          this.$route.path !== '/home' && this.$router.push({path: '/home'})
+        })
+    },
+
+    // 获取登陆状态
+    async Status(flag){
+      flag && 
+      await this.$api.LoginStatus()
+      .then( res => { 
+        let data = res.data.profile;
+        this.url = data.avatarUrl;
+        this.id = data.userId;
+        console.log(res)
       })
       .catch( () => {
         return;
       })
-  },
-  created(){
-    if(!this.status){
-      let arr = [],
-          len;
-      arr = document.cookie.split('; ');
-      len = arr.length;
-      for(let i = 0; i < len; i++){
-        this.cookie = arr[i].split('=')
-        if(this.cookie[0] == '__remember_me'){
-          return this.$store.commit('changeStatus');
-        }else{
-          this.cookie = [];
-        }
-      }
-    }
-    
-  },
-  mounted(){
-    this.status && setTimeout(() => {
-      this.$refs.userImg.src = this.url
-    }, 1000);
-  },
-  updated(){
-    this.$api.LoginRefresh()
-      .then( () => {
-        this.$refs.userImg.src = this.url
-      })
-      .catch( () => {
-        return this.status = false;
-      })
-  },
-  methods:{
-    changeRouter(event){
-      let path = this.$router.options.routes;
-      console.log(path,event.target)
+      this.CHANGE_STATUS(flag);
     },
-    Logout(){
-      this.$api.Logout()
-        .then( () => {
-          this.$store.commit('changeStatus');
-          this.$store.commit('Uid','');
-          this.$route.path !== '/home' && this.$router.push({path: '/home'})
-        })
-        .catch(()=> {
-          console.log('Logout')
-        })
+
+    // 查看cookie
+    Cookie(){
+       document.cookie.split(';').map(list => {
+         list.split('=').some(item => {
+           if(item == ' __remember_me'){
+             this.Status(true)
+             return true;
+           }else{
+             this.Status(false)
+           }
+         })
+       })
     }
   }
 }
@@ -126,50 +123,36 @@ export default {
 
 <style lang="scss" scoped>
   .el-header{
-    
+    @include shadow;
     .header{
       position: fixed;
       top: 0;
       right: 0;
       left: 0;
       width: 100%;
-      z-index: 9999;
+      z-index: 9;
       background: #fff;
     }
     .container{
-      position: relative;
       display: flex;
-
       .left{
-        margin-right: 40px;
-        width: 146px;
-        height: 60px;
-        line-height: 60px;
-        
+        @include flex;
+        margin-right: 40px;       
         .logo{
-          display: inline-block;
-          width: 146px;
-          height: 26px;
-          vertical-align: middle;
-          background-image: url('../../assets/logo_black.png');
-          background-position: 0;
-          background-repeat: no-repeat;
-          background-size: cover;
+          @include flex;
+          height: 100%;
+          cursor: pointer;
         }   
       }   
       
       .main{
         display: flex;
-        width: 60%;
         height: 60px;
         line-height: 60px;
-        font-size: 14px;
         color: #909399;
         align-items: center;
         a{
           margin-right: 40px;
-          height: 50px;
-          line-height: 50px;
           cursor: pointer;
           border-bottom: 2px solid transparent;
           color: #909399;
@@ -177,8 +160,8 @@ export default {
             color: #303133;
           }
           &.router-link-active{
-            color: #fa2800;
-            border-bottom-color: #fa2800
+            color: $mainColor;
+            border-bottom-color: $mainColor;
           }
         }
       }
@@ -188,54 +171,30 @@ export default {
         right: 0;
         top: 10px;
         display: flex;
-        &:focus{
-          outline: 0;
+        .search{
+          height: 40px;
         }
-
-        .input{
-          padding-right: 40px;
-          width: 158px;
-        }
-
         .signin{
-          display: flex;
-          padding-right: 20px;
-          height: 40px; 
-          line-height: 40px;
-          text-align: center;
-
-          a{
-            width: 60px;
-            margin-right: 40px;
-            height: 40px;
-            font-size: 14px;
-            color: #909399;
-            &:hover{
-              color: #303133;
-            }
-          }
-          .el-dropdown{
-            display: flex;
-            width: 60px;
-            margin-right: 40px;
-            height: 40px;
-            line-height: 40px;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-
+          @include flex;
+          padding-right: 60px;
+          .wrapper{
+            width: 50px;
             a{
-              display: flex;
-              align-items: center;
-              margin-right: 0;
-              width: 30px;
+              color: #909399;
+              &:hover{
+                color: #303133;
+              }
             }
-            .user-img{
-              display: inline-block;
-              height: 30px;
-              line-height: 30px;
-              border-radius: 50%;
-              cursor: pointer;
+            .el-dropdown{
+              @include flex;
+              a{
+                @include flex;
+              }
+              .user-img{
+                height: 30px;
+                border-radius: 50%;
+                cursor: pointer;
+              }
             }
           }
         }

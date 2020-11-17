@@ -19,6 +19,10 @@ import {
   CarouselItem,
   Image,
   Slider,
+  Pagination,
+  Loading,
+  Backtop,
+  Autocomplete,
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/base.css';
 
@@ -41,5 +45,9 @@ Vue.use(Button)
   .use(CarouselItem)
   .use(Image)
   .use(Slider)
+  .use(Pagination)
+  .use(Loading)
+  .use(Backtop)
+  .use(Autocomplete)
   
   

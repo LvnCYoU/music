@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <back-top></back-top>
     <app-header v-if="$route.path!=='/signin'"></app-header>
     <app-main></app-main>
     <Player v-show="$store.state.playing" v-if="$route.path!=='/signin'"></Player>
@@ -11,7 +12,8 @@
 const AppHeader = () => import('./components/header')
 const AppMain = () => import('./components/main')
 const Player = () => import('./components/player')
-import AppFooter from './components/footer'
+const AppFooter = () => import('./components/footer')
+const BackTop = () => import('./components/common/go-top')
 export default {
   mounted(){  
     window.addEventListener('unload', this.saveState)
@@ -26,9 +28,8 @@ export default {
     AppMain,
     Player,
     AppFooter,
+    BackTop,
   }
 }
 </script>
-<style lang="scss" src="./main.scss">
 
-</style>

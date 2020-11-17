@@ -1,16 +1,24 @@
 <template>
-
-  <router-view/>
-
+  <div id="main">
+    <loading v-show="isLoading" /> 
+    <router-view/>
+  </div>
 </template>
 
 <script>
+import Loading from '../common/loading'
+import {mapState} from 'vuex'
 export default {
-  
+  components: {
+    Loading,
+  },
+  computed:{
+    ...mapState(['isLoading']),
+  }
 }
 </script>
 <style lang="scss" scoped>
-  body{
-    overflow: hidden;
-  }
+ .main{
+   height: 100%;
+ }
 </style>

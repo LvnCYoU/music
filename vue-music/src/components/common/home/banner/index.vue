@@ -17,14 +17,22 @@ export default {
       banners: [],
     }
   },
-  created(){
-    this.$api.Banner()
-      .then( res => {
-        this.banners = res.data.banners;
-      })
-      .catch( () => {
-        return ;
-      })
+  mounted(){
+    this.init();
+  },
+  methods:{
+    init(){
+      this.getBanner();
+    },
+    async getBanner(){
+      await this.$api.Banner()
+        .then( res => {
+          this.banners = res.data.banners;
+        })
+        .catch( () => {
+          return ;
+        })
+    }
   }
 }
 </script>
@@ -32,17 +40,10 @@ export default {
   .banner{
     margin-top: 40px;
     height: 236px;
-    z-index: -999;
     .el-carousel__container{
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      align-content:center;
-      vertical-align: middle;
       .el-carousel__item{
         display: flex;
         align-items: center;
-        height: 240px;
         .image-box{
           display: flex;
           align-items: center;
@@ -53,7 +54,7 @@ export default {
       } 
     } 
     .el-carousel__indicator.is-active button{
-      background: #fa2800;
+      background: $mainColor;
     }
     .el-carousel__indicator button{
       background: #a3a3a3;

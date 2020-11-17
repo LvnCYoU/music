@@ -7,7 +7,6 @@
           <p class="desc">nicemusic</p>
         </div>
         <div class="info">
-         
         </div>
       </div>
       <div class="center">
@@ -45,8 +44,8 @@ export default {
   .footer{
     margin-top: 50px;
     width: 100%;
+    height: 230px;
     background: #161e27;
-    font-size: 14px;
     .container{
       margin: 0 3rem;
       padding: 3vh 0;

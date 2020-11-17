@@ -3,60 +3,26 @@
       <div class="container">
         <div class="cloud-music-rank">
           <h2 class="title">云音乐特色榜</h2>
-          <div class="cloud-list">
-            <div class="item" v-for="(item,index) in cloudList" :key="index">
-              <div class="wrapper">
-                <router-link tag="a" :to="{name:'playlist-detail',query:{id:item.id}}">
-                  <div class="cover">
-                    <div class="img" :key="index">
-                      <el-image :src="item.coverImgUrl" fit="cover" lazy></el-image>
-                    </div>
-                    <div class="count" :key="item.trackCount">
-                      <i class="el-icon-service"></i>
-                      <span>{{ utils.SimplifyPlayCount(item.playCount) }}</span>
-                    </div>
-                  </div>
-                </router-link>
-              </div>
-              <div class="info">
-                <h2>{{ item.name }}</h2>
-              </div>
-            </div>
-          </div>
+          <song-sheet :songLists="cloudList"/>
         </div>
         <div class="global-music-rank">
           <h2 class="title">全球媒体榜</h2>
-          <div class="global-list">
-            <div class="item" v-for="(item,index) in globalList" :key="index">
-              <div class="wrapper">
-                <router-link tag="a" :to="{name:'playlist-detail',query:{id:item.id}}">
-                  <div class="cover">
-                    <div class="img" :key="index">
-                      <el-image :src="item.coverImgUrl" fit="cover" lazy></el-image>
-                    </div>
-                    <div class="count" :key="item.trackCount">
-                      <i class="el-icon-service"></i>
-                      <span>{{ utils.SimplifyPlayCount(item.playCount) }}</span>
-                    </div>
-                  </div>
-                </router-link>
-              </div>
-              <div class="info">
-                <h2>{{ item.name }}</h2>
-              </div>
-            </div>
-          </div>
+          <song-sheet :songLists="globalList"/>
         </div>
       </div>
     </div>
 </template>
 <script>
+import SongSheet from '../songsheet/songsheet_scss'
 export default {
   data(){
     return{
       cloudList: [],
       globalList: [],
     }
+  },
+  components: {
+    SongSheet,
   },
   mounted(){
     this.init();
@@ -84,7 +50,9 @@ export default {
       flex-wrap: wrap;
       margin: 0 -15px;
     }
+    .title{
+      padding-left: 20px;
+      border-left: 3px solid $mainColor;
+    }
   }
 </style>
-
-<style lang="scss" src="../songsheet/item.scss"></style>

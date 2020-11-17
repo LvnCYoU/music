@@ -10,7 +10,6 @@ const AppVideo = () => import('../components/common/video');
 const AppSongSheet = () => import('../components/common/songsheet');
 const AppSignIn = () => import('../components/common/signin')
 const AppUser = () => import('../components/common/user');
-// const AppHomePlaylist = () => import('../components/common/home/playlist');
 Vue.use(Router);
 
 const router =  new Router({
@@ -41,14 +40,48 @@ const router =  new Router({
         }else next()
       }
     },
-    {path: '/video', component: AppVideo},
+    {
+      path: '/video', 
+      component: AppVideo,
+      beforeEnter(to,from,next){
+        Message({
+          message: '请先登录',
+          type: 'error',
+          duration: 1000
+        })  
+        next({path: '/signin?mv'});
+        
+      }
+    },
     {path: '/songsheet', component: AppSongSheet},
     {path: '/signin', component: AppSignIn,},
-    {path: '/user', component: AppUser},
     {
-      name: 'playlist-detail',
-      path: '/playlist-detail',
-      component: () => import('../components/common/home/playlist')
+      name: 'user',
+      path: '/user',
+      component: AppUser,
+      children: [
+        
+      ]
+    },
+    {
+      name: 'songsheet-detail',
+      path: '/songsheet-detail',
+      component: () => import('../components/common/songsheet/songsheet-detail')
+    },
+    {
+      name: 'singer-detail',
+      path: '/singer-detail',
+      component: () => import('../components/common/singer/singer-detail')
+    },
+    {
+      name: 'mv-detail',
+      path: '/mv-detail',
+      component: () => import('../components/common/MV/mv-detail')
+    },
+    {
+      name: 'search',
+      path: '/search',
+      component: () => import('../components/common/search')
     }
   ],
   

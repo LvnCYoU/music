@@ -18,19 +18,5 @@ export default {
     RecommendList,
     RecommendSong,
   },
-  computed: {
-
-  },
-  created(){
-    
-  },
-  methods:{
-    
-
-  }
 }
  </script>
-
-<style lang="scss" scoped>
-
-</style>

@@ -4,51 +4,49 @@ export default {
   /**
    * @method 获取轮播图
    */
-  async Banner(type){
+  Banner(type){
     return api.get(`/banner?${type}`);
   },
   /**
    * @method 获取推荐歌单
    */
-  async Personalized(limit){
+  Personalized(limit){
     return api.post(`/personalized?limit=${limit}`)
   },
   /**
    * @method 获取歌单详情
    */
-  async PlaylistDetail(id){
-    return api.post('/playlist/detail',{
-      id,
-    })
+  PlaylistDetail(params){
+    return api.get(`/playlist/detail`,{params})
   },
   /**
    * @method 获取推荐新音乐
    */
-  async PersonalizedNewSong(){
+  PersonalizedNewSong(){
     return api.post('personalized/newsong');
   },
   /**
    * @method 获取音乐url
    */
-  async SongUrl(id){
-    return api.get(`/song/url?id=${id}`)
+  SongUrl(id){
+    return api.post(`/song/url?id=${id}`)
   },
   /**
    * @method 获取歌词
    */
-  async Lyric(id){
+  Lyric(id){
     return api.get(`/lyric?id=${id}`)
   },
   /**
    * @method 获取歌曲详情
    */
-  async SongDetail(id){
+  SongDetail(id){
     return api.get(`/song/detail?ids=${id}`)
   },
   /**
    * @method 获取专辑内容
    */
-  async Album(id){
+  Album(id){
     return api.get(`/album?id=${id}`)
   },
   /**
@@ -75,10 +73,8 @@ export default {
   /**
    * @method 歌单(网友精选碟)
    */
-  TopPlaylist(num,str){
-    let offset = num ? num * 40 : 0;
-    let order = str || 'hot';
-    return api.get(`/top/playlist?limit=40&offset=${offset}&order=${order}`)
+  TopPlaylist(params){
+    return api.get(`/top/playlist?`,{params})
   },
 
   /**
@@ -100,4 +96,87 @@ export default {
     })
   },
 
+  /**
+   * @method 歌手分类列表
+   */
+  ArtistList(params){
+    return api.get('/artist/list',{params})
+  },
+
+  /**
+   * @method 获取mv
+   */
+  MvAll(params){
+    return api.get('/mv/all',{params})
+  },
+  
+  /**
+   * @method 获取歌单收藏者
+   */
+  PlaylistSubscribers(params){
+    return api.get('/playlist/subscribers',{params})
+  },
+
+  /**
+   * @method 获取相关歌单推荐
+   */
+  RelatedPlaylist(id){
+    return api.get(`/related/playlist?id=${id}`)
+  },
+
+  /**
+   * @method 获取歌单评论
+   */
+  CommentPlaylist(id){
+    return api.get(`comment/playlist?id=${id}`);
+  },
+
+  /**
+   * @method 获取搜索建议
+   */
+  SearchSuggest(key){
+    return api.get(`/search/suggest?keywords=${key}`);
+  },
+
+  /**
+   * @method 搜索
+   */
+  Search(params){
+    return api.get('/search',{params});
+  },
+
+  /**
+   * @method 获取歌手单曲
+   */
+  Artists(id){
+    return api.get(`/artists?id=${id}`)
+  },
+
+  /**
+   * @method 获取歌手描述
+   */
+  ArtistDesc(id){
+    return api.get(`/artist/desc?id=${id}`)
+  },
+
+  /**
+   * @method 获取歌手专辑
+   */
+  ArtistAlbum(params){
+    return api.get(`/artist/album`,{params})
+  },
+
+  /**
+   * @method 获取歌手mv
+   */
+  ArtistMv(id){
+    return api.get(`artist/mv?id=${id}`)
+  },
+
+  /**
+   * @method 获取相似歌手
+   */
+  SimiArtist(id){
+    return api.get(`simi/artist?id=${id}`)
+  },
 }

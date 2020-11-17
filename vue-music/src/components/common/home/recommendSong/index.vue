@@ -3,26 +3,34 @@
     <h2 class="title">推荐新歌</h2>
     <div class="list">
       <div class="item" v-for="(item,index) in List" :key="item.id" ref="play_list">
-        <div class="wrapper flex-center" @click="playSong(item.id,item.song.album.id,index)">
-          <div class="index flex-center">
-            <span>{{ index + 1 }}</span>
-            <i class="el-icon-video-play" ref="play_btn"></i>
-            <div class="play-animation">
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+        <div class="wrapper" @click="playSong(item.id,item.song.album.id,index)">
+          <div class='index'>
+            <div 
+              :class="item.id == songId ? 
+              playStatus ? 
+              'is-active': '' : '' "
+            >
+              <span>{{ index + 1 }}</span>
+              <i class="el-icon-video-play" v-show="item.id != songId || !playStatus"></i>
+              <i class="el-icon-video-pause" v-show="playStatus && item.id == songId"></i>
+              <div class="play-animation">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
+            
           </div>
           <div class="album">
             <el-image :src="item.picUrl" fit="cover"></el-image>
           </div>
-          <div class="info flex-center">
+          <div class="info">
             <div class="artist">
-              <p class="singer-company">{{ item.song.album.company }}</p>
+              <p class="singer-company" v-show="item.song.album.company">{{ item.song.album.company }}</p>
               <p class="singer">
-                {{ item.song.artists.length > 1 ? getSinger(item.song) : item.song.artists[0].name}}
+                {{ utils.getSinger(item.song) }}
               </p>
             </div>
           </div>
@@ -39,7 +47,6 @@
 </template>
 <script>
 import {mapActions,mapGetters,mapState} from 'vuex'
-import {playing} from '../../../../api/audio'
 export default {
   data(){
     return {
@@ -48,145 +55,58 @@ export default {
     }
   },
   computed:{
-    ...mapGetters(['getSongId','getCurrentSong']),
-    ...mapState(['songList','songId','audio']),
+    ...mapGetters(['getSongId','getCurrentSong','getPlayStatus']),
+    ...mapState(['songList','songId','audio','playStatus']),
   },
-  created(){
-    this.$api.PersonalizedNewSong()
-      .then( res => {
-        this.List = res.data.result;
-      })
-  },
-  watch: {
-    songId(id){
-      this.List.some( (list,index) => {
-        if(list.id == id){
-          this.$refs.play_list.some( item => {
-            if(item.className.indexOf('is-active') > 1){
-              item.classList.remove('is-active');
-            }
-          })
-          this.$refs.play_btn.some( item => {
-            if(item.className == 'el-icon-video-pause'){
-              item.className = 'el-icon-video-play';
-            }
-          })
-          this.$refs.play_list[index].classList.add('is-active');
-          this.$refs.play_btn[index].className = 'el-icon-video-pause';
-          return true;
-        }
-      })
-    }
-    
+  mounted(){
+    this.init()
   },
   methods: {
     ...mapActions([
-      'changeSongUrl',
       'currentSong',
       'songsList',
     ]),
 
+    init(){
+      this.getPersonalizedNewSong();
+      this.playStatus && this.getPlayStatus(false);
+    },
 
-    // 获取歌手名字
-    getSinger(list){
-      let len = list.artists.length;
-      let str = '';
-      for(let i = 0; i < len; i++){
-        if(!i)str = list.artists[i].name;
-        else{
-          str += '/' + list.artists[i].name
-        }
-      }
-      return str;    
+    // 获取推荐新歌
+    async getPersonalizedNewSong(){
+      await this.$api.PersonalizedNewSong()
+        .then( res => {
+          this.List = res.data.result;
+        })
     },
 
     // 开启播放组件 , 传播放列表
     playSong(id,alid,index){
-      this.getSongId(id)
-      let obj = {};
-      let songList = this.storeId(this.List)
-      obj.id = id;
-      obj.alid = alid;
-      obj.index = index;
-      this.currentSong(obj)
-      this.getSongUrl();
-      this.songsList(songList)
-      if(id == this.getCurrentSong.id){
-        if(!this.audio.audio.paused){
-          this.$refs.play_list.some( item => {
-            if(item.className.indexOf('is-active') > 1){
-              item.classList.remove('is-active');
-            }
-          })
-          this.$refs.play_btn.some( item => {
-            if(item.className == 'el-icon-video-pause'){
-              item.className = 'el-icon-video-play';
-            }
-          })
-        }else{
-           this.$refs.play_list[index].classList.add('is-active');
-          this.$refs.play_btn[index].className = 'el-icon-video-pause';
-        }
-        playing(this.audio);
+      if(id == this.songId){
+        let audio = this.audio;
+        this.getPlayStatus(audio.paused);
+        audio.paused ? audio.play() : audio.pause();
+        return ;
       }
-      
-      
+      this.getSongId(id)
+      let songList = this.utils.storeId(this.List)
+      let obj = {
+        id,
+        alid,
+        index,
+      }
+      this.songsList(songList)
+      this.currentSong(obj)
     },
-
-    // 存储音乐id
-    storeId(list){
-      let arr = [];
-      list.forEach((value,index) => {
-        let obj = {}
-        obj.alid = value.song.album.id;
-        obj.id = value.id;
-        obj.song = value.name;
-        obj.singer = value.song.artists.length > 1 ? 
-          this.getSinger(value.song) : 
-          value.song.artists[0].name
-        obj.index = index;
-        arr.push(obj)
-      })
-      return arr
-    },
-
-    // 获取音乐url  
-    getSongUrl(){
-      let str = ''
-      this.songList.map( (list,index) => {
-        !index ? str = list.id : str += ',' + list.id
-      })
-      this.$api.SongUrl(str)
-        .then(res => {
-          let arr = [];
-          this.songList.map( (list,index) => {
-            res.data.data.map( item => {
-              if(list.id === item.id){
-                arr.push(item.url)
-              }
-            })
-            list.url = arr[index]
-          })
-
-        })
-    },
-
-    // 播放动画
-    // animation(id){
-      
-    // }
   },
 }
 </script>
 <style lang="scss" scoped>
 .recommend-song{
-  h2{
-    margin: 0;
-    font-size: 16px;
-    color: #4a4a4a;
-  }
   .title{
-    margin: 20px 0 20px 0;
+    margin: 20px 0 20px 10px;
+    padding-left: 10px;
+    border-left: 2px solid $mainColor;
   }
   .list{
     display: flex;
@@ -196,62 +116,25 @@ export default {
       flex: 0 0 50%;
       max-width: 50%;
       margin-bottom: 20px;
-      height: 80px;
-      padding: 0 15px 30px;
+      padding-left: 15px;
       box-sizing: border-box;
       &:nth-child(even){
         padding-left: 30px;
       }
-      &.is-active:hover{
-        .wrapper{
-          .index{
-            .play-animation{
-              display: none;
-            }
-          }
-        }
-        
-      }
-      &.is-active{
-        .wrapper{
-          .index{
-            span{
-              display: none;
-            }
-            .play-animation{
-              display: flex;
-              span{
-                display: block;
-              }
-            }
-          }
-        }
-        
-        
-      }
       .wrapper{
-        position: relative;
+        @include flex;
+        @include shadow;
         height: 80px;
         padding-left: 2%;
         border-radius: 5px;
-        justify-content: start;
+        justify-content: flex-start;
         background: #fff;
-        width: 100%;
-        box-shadow: 0 5px 40px -1px rgba(2,10,18,.1);
-        cursor: pointer;
-        &:hover{
-          span{
-            display: none;
-          }
-          .el-icon-video-play,.el-icon-video-pause{
-            display: block;
-          }
-        }
+        cursor: pointer; 
         .index{
+          @include flex;
           width: 30px;
           margin-right: 20px;
           .play-animation{
-            margin-right: 0;
             display: none;
             height: 16px;
             min-width: 18px;
@@ -276,19 +159,28 @@ export default {
           i{
             display: none;
             font-size: 22px;
-            color: #fa2800;
+            color: $mainColor;
           }
           span,i{
             transition: all 1s;
           }
-
+          .is-active{
+            span{
+              display: none;
+            }
+            .play-animation{
+              display: flex;
+              span{
+                display: block;
+              }
+            }
+          }
         }
         .album{
-          position: relative;
+          margin-right: 30px;
           width: 55px;
           height: 55px;
           border-radius: 5px;
-          margin-right: 30px;
         }
         .info{
           width: 15%;
@@ -298,21 +190,14 @@ export default {
               margin-bottom: 10px;
               font-weight: 700;
             }
-            .singer{
-              overflow: hidden;
-            }
             .singer,.singer-company{
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              font-size: 14px;
+              @include ellipse;
               color: #333;
               transition: all 1s;
             }
           }
         }
         .song-name,.duration{
-          font-size: 14px;
           color: #333;
           font-weight: 700;
         }
@@ -322,6 +207,19 @@ export default {
         }
         .duration {
           margin-left: 40px;
+        }
+        &:hover{
+          .index{
+            .play-animation{
+              display: none;
+            }
+            i{
+              display: block;
+            }
+            span{
+              display: none;
+            }
+          }
         }
       }
     }

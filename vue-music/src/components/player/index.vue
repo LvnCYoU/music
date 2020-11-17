@@ -1,23 +1,29 @@
 <template>
   <transition name="el-fade-in">
-    <div class="player-box" ref="playerBox">
+    <div 
+      class="player-box" 
+      ref="playerBox"
+    >
       <audio ref="playingBox" 
       @timeupdate="getCurrentTime" 
       @ended="songEnd"
       preload="auto"
-      :src="songUrl"
+      :src="getCurrentSong.songUrl"
       ></audio>
       <div class="song-image">
         <img :src="getCurrentSong.img">
-        <p>{{ getCurrentSong }}</p>
       </div>
       <div class="info">
-        <h2 class="ellipsis">{{ getCurrentSong.song }}</h2>
-        <p class="ellipsis">{{ getCurrentSong.singer }}</p>
+        <h2>{{ getCurrentSong.song }}</h2>
+        <p>{{ getCurrentSong.singer }}</p>
       </div>
       <div class="player-btn">
         <i class="iconfont icon-shangyishou" title="上一首" @click="propSong"></i>
-        <i class="iconfont icon-bofang" title="播放" ref="playing" @click="playing"></i>
+        <i 
+          :class="playStatus ? 
+          'iconfont icon-zanting' : 'iconfont icon-bofang' " 
+          :title="playStatus ? '暂停' : '播放' " 
+          @click="playing"></i>
         <i class="iconfont icon-xiayishou" title="下一首" @click="nextSong"></i>
       </div>
       <div class="progress-box">
@@ -33,7 +39,11 @@
         <p class="duration">{{ getCurrentSong.durationTime }}</p>
       </div>
       <div class="volume-box">
-        <i class="iconfont icon-laba" title="音量" ref="volumn" @click="changeVolumn"></i>
+        <i 
+          :class="volume.ve == 0 ? 'iconfont icon-jingyin' : 'iconfont icon-laba'" 
+          :title="volume.ve == 0 ? '静音' : '音量'"  
+          @click="changeVolumn"
+        ></i>
         <div class="progress">
           <el-slider 
           v-model="volume.ve"
@@ -43,7 +53,15 @@
         </div>
       </div>  
       <div class="tool-box">
-        <i class="iconfont icon-xunhuanbofang" title="循环播放" ref="playerMode" @click="changeMode"></i>
+        <i 
+          :class="playMode == 'loop' ? 'iconfont icon-xunhuanbofang':
+            playMode == 'once' ? 'iconfont icon-danquxunhuan' :
+            'iconfont icon-suijibofang'" 
+          :title="playMode == 'loop' ? '循环播放' :
+            playMode == 'once' ? '单曲循环' : '随机播放'"  
+          @click="changeMode"
+        >
+        </i>
         <i class="iconfont icon-gecitiaozheng" title="歌词" @click="showList"></i>
         <i class="iconfont icon-gedan" title="播放列表" @click="showList"></i>
       </div>
@@ -51,7 +69,6 @@
         <div 
           class="lyric-box shadow" 
           @wheel.stop.prevent
-          ref="lyricBox"
           v-show="showLyric"
         >
           <scroll 
@@ -60,7 +77,11 @@
             ref="lyricList"
           >
             <div class="wrapper" ref="lyricWrap" style="transition-duration='1000ms'">
-              <p v-for="(item,index) in getCurrentSong.lyric" :key="index" ref="line">
+              <p 
+                v-for="(item,index) in getCurrentSong.lyric" 
+                :key="index" ref="line"
+                :class="lineNo-1 == index ? 'is-linehigh' : ''"
+              >
                 {{ item.lyric }}
               </p>
             </div>
@@ -71,7 +92,6 @@
         <div 
           class="songlist-box shadow" 
           @wheel.stop.prevent
-          ref="songBox"
           v-show="showPlayList"
         >
           <div class="title">
@@ -85,10 +105,18 @@
             ref="songList"
           >
           <div class="wrapper-box">
-            <div class="wrapper" ref="listWrap" v-for="(item,index) in songList" :key="index" @click="playlistPlay(index)">
+            <div 
+              :class="item.id == songId ? 
+              playStatus ? 
+              'wrapper is-active' : 'wrapper' : 'wrapper'" 
+              v-for="(item,index) in songList" 
+              :key="index" 
+              @click="changeSong(index)"
+            >
               <div class="index">
                 <p>{{ index + 1 }}</p>
-                <i class="iconfont icon-bofang" ref="listStatus"></i>
+                <i class="iconfont icon-bofang" v-show="item.id != songId || !playStatus"></i>
+                <i class="iconfont icon-zanting" v-show="playStatus && item.id == songId"></i>
                 <div class="play-animation">
                   <span></span>
                   <span></span>
@@ -118,7 +146,7 @@
 
 <script>
 import {mapMutations,mapActions,mapState,mapGetters} from 'vuex'
-import Scroll from '../../api/scroll'
+let Scroll = () => import('../../api/scroll');
 export default {
   data(){
     return {
@@ -126,7 +154,7 @@ export default {
       songInfo: {},
       time: 0,
       status: true,
-      amend: false,
+      flag: false,
       lineNo: 0, // 当前行
       propLine: null, // 上一行
       C_pos: 6, // C位
@@ -135,7 +163,7 @@ export default {
         ve: 50,
         old: 0,
       },
-      mode: 'loop',
+      lyric: [],
       showLyric: false,
       showPlayList: false,
     }
@@ -144,15 +172,15 @@ export default {
     Scroll,
   },
   computed: {
-    ...mapGetters(['getCurrentSong','getSongId','getPlayerMode']),
-    ...mapState(['songUrl','songId','songList','playMode']),
+    ...mapGetters(['getCurrentSong','getSongId','getPlayerMode','getPlayStatus']),
+    ...mapState(['songId','songList','playMode','playStatus']),
 
   },
   watch: {
     songId(id,oldid){
       if(!id || id === oldid) return;
       this.$nextTick( () => {
-        this.status = true;
+        this.getPlayStatus(false);
         this.currentSongInfo(id,this.getCurrentSong.alid);
       })
     },
@@ -162,44 +190,13 @@ export default {
   },
 
   methods:{
-    ...mapMutations(['showPlayer']),
-    ...mapActions(['changeSongUrl','currentSong','songsList','audioInit']),
-    test(){
-      this.changeTime = false;
-    },
-    test1(){
-      this.changeTime = true;
-    },
-    // 样式初始化
+    ...mapMutations(['SHOW_PLAYER']),
+    ...mapActions(['currentSong','songsList','audioInit']),
+
     init(){
-      let dom = this.$refs.playerMode;
       this.audio = this.$refs.playingBox;
-      this.mode = this.playMode
-      let obj = {};
-      obj.audio = this.audio;
-      obj.playBtn = this.$refs.playing;
-      obj.status = this.$refs.listStatus;
-      obj.wrap = this.$refs.listWrap;
-      this.audioInit(obj);
-      if(this.mode === 'loop'){
-        dom.className = 'iconfont icon-xunhuanbofang'
-        dom.title = '循环播放'
-      }
-      else if(this.mode === 'once'){
-        dom.className = 'iconfont icon-danquxunhuan'
-        dom.title = '单曲循环'
-      }
-      else if(this.mode === 'random'){
-        dom.className = 'iconfont icon-suijibofang'
-        dom.title = '随机播放'
-      }
-      if(this.getCurrentSong.lyric){
-        let arr = [];
-        let lyric = []
-        lyric.lyric = '暂无歌词，敬请见谅';
-        arr.push(lyric);
-        this.getCurrentSong.lyric = arr
-      }
+      this.audioInit(this.audio);
+      this.progressBtn();
     },
 
     // 歌曲信息初始化
@@ -218,31 +215,33 @@ export default {
             resAlbum,
             resLyric
             ){
-              let obj = {};
-              _this.changeSongUrl(resUrl.data.data[0].url);
-              obj.durationTime = _this.utils.formatTime(resDetail.data.songs[0].dt)
-              obj.dt = resDetail.data.songs[0].dt
-              obj.img = resAlbum.data.album.picUrl;
-              obj.song = resAlbum.data.album.name;
-              obj.singer = resAlbum.data.album.artist.name
-              obj.lyric = _this.utils.Lyric(resLyric.data.lrc.lyric)
+              let obj = {
+                durationTime: _this.utils.formatTime(resDetail.data.songs[0].dt),
+                dt: resDetail.data.songs[0].dt,
+                img: resAlbum.data.album.picUrl,
+                song: resAlbum.data.album.name,
+                singer: resAlbum.data.album.artist.name,
+                lyric: _this.utils.Lyric(resLyric.data.lrc.lyric),
+                songUrl: resUrl.data.data[0].url,
+              }
               if(!obj.lyric.length){
                 let arr = [];
                 arr.lyric = '暂无歌词，敬请见谅';
                 obj.lyric.push(arr);
               }
               _this.currentSong(obj);
-              if(_this.getCurrentSong.singer){  
-                _this.showPlayer();
-              }
-        }))     
-      if(this.audio.src) {
-        this.playing() 
-      }
+
+        }))    
+        if(this.getCurrentSong.singer){
+          this.audio.src = this.getCurrentSong.songUrl;
+          this.SHOW_PLAYER();
+          this.playing();
+        }
     },
     
     // 上一首
     propSong(){
+      if(this.songList.length == 0) return;
       let index = this.getCurrentSong.index;
       index == 0 ? index = this.songList.length - 1 : index -= 1;
       this.changeSong(index);
@@ -252,6 +251,7 @@ export default {
 
     // 下一首
     nextSong(){
+      if(this.songList.length == 0) return ;
       let index = this.getCurrentSong.index;
       index == this.songList.length - 1 ? index = 0: index += 1
       this.changeSong(index);
@@ -261,36 +261,36 @@ export default {
 
     // 播放
     playing(){
-      if(this.status){
-        this.$refs.playing.className = 'iconfont icon-zanting'
-        this.audio.play();
-      }
-      if(!this.status){
-        this.$refs.playing.className = 'iconfont icon-bofang'
-        this.audio.pause();
-      }
-      this.currentPlayList();
-      this.status = !this.status
+      this.playStatus ? this.audio.pause()
+      : this.audio.play()
+        .catch(() => {
+          // 处理超时禁止音乐播放
+          this.getPlayStatus(false);
+          this.playPause();
+          this.getPlayStatus(true);
+        });
+      this.getPlayStatus(!this.audio.paused);
     },
 
     // 歌曲播放完毕
     songEnd(){
       let index = this.getCurrentSong.index;
-      if(this.mode === 'loop'){
-        !this.songList[index + 1] ? index = 0 : index += 1
-        this.getCurrentSong.index += 1;
-      }
-      else if(this.mode === 'once'){
-        this.audio.currentTime = 0;
-        this.audio.play();
-        return ;
-      }
-      else {
-        let len = this.songList.length - 1;
-        let i = ~~(Math.random() * (len - 1));
-        if(i == index) this.songEnd();
-        else index = i;
-      }
+      let action = new Map([
+        ['loop', () => {
+          !this.songList[index + 1] ? index = 0 : index += 1
+        }],
+        ['once', () => {
+          this.playPause();
+          return;
+        }],
+        ['random', () => {
+          let len = this.songList.length - 1;
+          let i = ~~(Math.random() * (len - 1));
+          if(i == index) this.songEnd();
+          else index = i;
+        }]
+      ])
+      action.get(this.playMode).call(this);
       this.changeSong(index);
       this.goback();
       this.playPause();
@@ -298,19 +298,20 @@ export default {
 
     // 切换歌曲
     changeSong(index){
-      this.currentSong(this.songList[index])
-      this.songList.length && this.getSongId(this.songList[index].id)
+      if(this.getCurrentSong.index == index) this.playing();
+      else{
+        this.currentSong(this.songList[index])
+        this.songList.length && this.getSongId(this.songList[index].id)
+      }
     },
 
     // 改变喇叭状态
-    changeVolumn(e){
+    changeVolumn(){
       let volume = this.volume.ve / 100;
-      if(e.target.className === "iconfont icon-laba"){
-        e.target.className = "iconfont icon-jingyin"
+      if(this.volume.ve){
         this.volume.old = volume;
         this.volume.ve = this.audio.volume = 0
       }else{
-        e.target.className = "iconfont icon-laba"
         this.audio.volume = this.volume.old;
         this.volume.ve = this.volume.old * 100;
       }
@@ -318,6 +319,7 @@ export default {
 
     // 获取当前播放时长
     getCurrentTime(){
+      if(this.flag) return;
       let len = this.getCurrentSong.lyric.length;
       this.time = this.audio.currentTime * 1000;
       if( this.lineNo == len) return;
@@ -350,25 +352,18 @@ export default {
 
     // 改变播放状态
     changeMode(){
-      let dom = this.$refs.playerMode;
-      if(this.mode === 'loop'){
-        this.getPlayerMode('once');
-        this.mode = 'once';
-        dom.className = 'iconfont icon-danquxunhuan'
-        dom.title = '单曲循环'
-      }
-      else if(this.mode === 'once'){
-        this.mode = 'random';
-        this.getPlayerMode('random')
-        dom.className = 'iconfont icon-suijibofang'
-        dom.title = '随机播放'
-      }
-      else if(this.mode === 'random'){
-        this.mode = 'loop';
-        this.getPlayerMode('loop')
-        dom.className = 'iconfont icon-xunhuanbofang'
-        dom.title = '循环播放'
-      }
+      let action = new Map([
+        ['loop',() => {
+          this.getPlayerMode('once');
+        }],
+        ['once', () => {
+          this.getPlayerMode('random');
+        }],
+        ['random', () => {
+          this.getPlayerMode('loop');
+        }]
+      ])
+      action.get(this.playMode).call(this);
     },
     
     // 展示 歌词/播放列表
@@ -391,15 +386,9 @@ export default {
     lineHigh() {
       if(this.getCurrentSong.lyric.length == 1) return ;
       let ul = this.$refs.lyricWrap;
-      let lis = this.$refs.line;
-      ul.style.transitionDuration = '1000ms'
-      if(this.lineNo > 0 && this.propLine || this.propLine == 0){
-        lis[this.propLine].removeAttribute("class");
-      }
-      lis[this.lineNo].className = "is-linehigh";// 高亮显示当前行
       //文字滚动
       if(this.lineNo > this.C_pos){
-        ul.style.transform = "translateY("+(this.lineNo - this.C_pos) * this.offset+"px)"; //整体向上滚动一行高度
+        ul.style.transform = "translateY(" + (this.lineNo - this.C_pos) * this.offset + "px)"; //整体向上滚动一行高度
       }
       else if(this.lineNo < this.C_pos){
         ul.style.transform = "translateY(0)"; //回到开头
@@ -409,54 +398,25 @@ export default {
     // 回调歌词
     goback() {
       let ul = this.$refs.lyricWrap;
-      if(this.propLine) {
-        this.$refs.line[this.propLine].removeAttribute("class");
-      }
       ul.style.transform = "translateY(0)";
       this.lineNo = 0;
     },
 
     // 切换歌曲时播放
     playPause() {
-      let playPromise;
       if(this.audio !== null) {
-        if(this.status) {		// 暂停
+        if(this.playStatus || this.songList.length == 0){
+          this.audio.currentTime = 0;	
           this.audio.pause();
+          this.getPlayStatus(false)
         }else {
-          this.audio.currentTime = 0;		// 控制audio时间
-          playPromise = this.audio.play();
-          this.currentPlayList();
-          if (playPromise) {
-            playPromise.then(() => {
-              // 音频加载成功
-            }).catch(() => {
-                // 失败后继续回调
-                setTimeout( () => {
-                  this.playPause(); 
-                },1000)
-                console.log('err')
+          this.audio.currentTime = 0;	
+          this.audio.play()
+            .catch(() => {
+              let data = this.getCurrentSong;
+              this.currentSongInfo(data.id,data.alid)
             });
-          }
         }
-      }
-    },
-
-    // 播放列表点击播放
-    playlistPlay(index){
-      let status = this.$refs.listStatus;
-      let wrap = this.$refs.listWrap;
-      if(index === this.getCurrentSong.index){
-        if(wrap[this.getCurrentSong.index].className == 'wrapper is-active'){
-          wrap[this.getCurrentSong.index].classList.remove('is-active');
-          status[this.getCurrentSong.index].className = 'iconfont icon-bofang';
-        }else{
-          wrap[this.getCurrentSong.index].classList.add('is-active');
-          status[this.getCurrentSong.index].className = 'iconfont icon-zanting';
-        }
-        this.playing();
-      }
-      else {
-        this.changeSong(index);
       }
     },
 
@@ -467,60 +427,42 @@ export default {
       this.songsList(arr);
     },
   
-    // 列表当前播放动画
-    currentPlayList(){
-      let status = this.$refs.listStatus;
-      let wrap = this.$refs.listWrap;
-      if(this.songList.length){
-        status.some( current => { 
-          if(current.className == 'iconfont icon-zanting'){
-            current.className = 'iconfont icon-bofang'
-            return true;
-          }
-        })
-        wrap.some( current => {
-          if(current.className == 'wrapper is-active'){
-            current.classList.remove('is-active');
-            return true;
-          }
-        })
-        if(this.status){
-          status[this.getCurrentSong.index].className = 'iconfont icon-zanting'
-          wrap[this.getCurrentSong.index].classList.add("is-active");
-        }
-        else{
-          status[this.getCurrentSong.index].className = 'iconfont icon-bofang'
-          wrap[this.getCurrentSong.index].classList.remove("is-active");
-        }
-      }
-    },
-
     // 清空播放列表
     delList(){
       let arr = [];
       this.songsList(arr);
-    }
-  }
+    },
 
+    // 进度条监听事件
+    progressBtn(){
+      let dom = document.querySelector('.el-slider__button');
+      dom.addEventListener('mousedown',() => {
+        this.flag = true;
+      })
+      window.addEventListener('mouseup', () => {
+        if(!this.flag) return ;
+        this.flag = false;
+      })
+    },
+
+  }
 }
 </script>
 
 <style lang="scss">
   .player-box{
+    @include flex;
     position: fixed;
     bottom: 0;
     right: 0;
     left: 0;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 72px;
-    background: #fff;
     padding-left: 20px;
     padding-right: 10px;
+    height: 72px;
+    background: #fff;
     box-sizing: border-box;
+    z-index: 9;
     .song-image,img{
-      display: inline-block;
       margin-right: 30px;
       width: 60px;
       height: 60px;
@@ -529,6 +471,9 @@ export default {
     .info{
       margin-right: 15px;
       width: 120px;
+      h2,p{
+        @include ellipse;
+      }
       h2{
         font-size: 14px;
         color: #333;
@@ -540,15 +485,14 @@ export default {
       }
     }
     .player-btn{
-      display: flex;
+      @include flex;
       margin-left: 30px;
       margin-right: 10px;
-      align-items: center;
       .iconfont{
         cursor: pointer;
         color: #4a4a4a;
         &:hover{
-          color: #fa2800;
+          color: $mainColor;
         }
       }
       .icon-shangyishou,.icon-xiayishou{
@@ -560,9 +504,7 @@ export default {
       }
     }
     .progress-box{
-      position: relative;
-      display: flex;
-      align-items: center;
+      @include flex;
       margin-left: 40px;
       width: 650px;
       flex: 1;
@@ -572,11 +514,10 @@ export default {
       }
     }
     .volume-box{
-      width: 180px;
+      @include flex;
       margin-left: 40px;
-      display: flex;
-      align-items: center;
       margin-right: 80px;
+      width: 180px;
       .iconfont{
         margin-right: 10px;
         font-size: 26px;
@@ -585,8 +526,7 @@ export default {
       }
     }
     .tool-box{
-      display: flex;
-      align-items: center;
+      @include flex;
       .iconfont{
         font-size: 26px;
         margin: 0 15px;
@@ -604,24 +544,22 @@ export default {
     }
     .progress{
       width: 100px;
-      display: inline-block;
-      align-items: center;
       flex:1;
       .el-slider__runway{
         height: 4px;
         .el-slider__bar{
           height: 4px;
-          background-color: #fa2800;
+          background-color: $mainColor;
         }
         .el-slider__button-wrapper{
           width: 0;
           height: 0;
-          top: -11px;
+          top: -10px;
           cursor: pointer;
           div.el-slider__button.el-tooltip{
             width: 10px;
             height: 10px;
-            border: 2px solid #fa2800;
+            border: 2px solid $mainColor;
             cursor: pointer;
           }
         }
@@ -642,6 +580,7 @@ export default {
       .lyric{
         height: 100%;
         overflow: hidden;
+        transition-duration: 1s;
         .wrapper{
           font-size: 12px;
           transition-duration: 600ms;
@@ -651,9 +590,8 @@ export default {
             font-size: 14px;
             font-weight: 300;
             text-align: center;
-            user-select: none;
             &.is-linehigh{
-              color: #fa2800;
+              color: $mainColor;
             }
           }
         }
@@ -663,9 +601,8 @@ export default {
       padding: 20px 30px;
       width: 500px;
       .title{
+        @include flex;
         margin: 10px 0 30px;
-        display: flex;
-        align-items: center;
         justify-content: space-between;
         h2{
           margin-left: 20px;
@@ -679,7 +616,7 @@ export default {
         }
       }
       .list{
-        height: 400px;
+        height: 390px;
         overflow: hidden;
         .wrapper-box{
           transition-duration: 600ms;
@@ -689,7 +626,7 @@ export default {
             height: 24px;
             &.is-active{
               p,i{
-                color: #fa2800;
+                color: $mainColor;
               }
               &:hover{
                 .index{
@@ -725,35 +662,28 @@ export default {
                 }
                 i{
                   display: block;
-                  color: #fa2800;
+                  color: $mainColor;
                 }
               }
               .del{
                 display: block;
                 &:hover{
-                  color: #fa2800;
+                  color: $mainColor;
                 }
               }
             }
             div{
-              display: flex;
-              align-items: center;
+              @include flex;
               margin-right: 25px;
               user-select: none;
               p{
-                display: inline-block;
+                @include ellipse;
                 width: 100%;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-                font-size: 14px;
+                text-align: center;
               }
               &.index{
-                display: flex;
+                @include flex;
                 width: 30px;
-                text-align: center;
-                justify-content: center;
-                align-items: center;
                 .play-animation{
                   margin-right: 0;
                   display: none;
@@ -765,7 +695,7 @@ export default {
                     width: 2px;
                     height: 100%;
                     margin-left: 2px;
-                    background: #fa2800;
+                    background: $mainColor;
                     &:nth-child(1) { animation-delay: -1s }
                     &:nth-child(3) { animation-delay: -1.5s }
                     &:nth-child(4) { animation-delay: -0.9s }

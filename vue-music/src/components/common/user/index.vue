@@ -1,87 +1,149 @@
 <template>
-  <div id="app">
+  <div class="user">
     <div class="container">
-      <div class="user-main">
-        <div class="user-detail">
+      <div class="left">
+        <div class="user-detail" v-if="info.profile">
           <div class="user-img">
-            <img :src="url" class="user-img">
+            <img :src="info.profile.avatarUrl" class="user-img" >
           </div>
           <div class="user-message">
             <div class="user-name">
               <div>
                 <h2>
-                  <span class="name">{{ name }}</span>
+                  <span class="name">{{ userName }}</span>
                   <span class="level">
                     <i class="el-icon-medal"></i>
-                    <p>Lv{{ level }}</p>
+                    <p>Lv{{ info.level }}</p>
                   </span>
                 </h2>
               </div>
               
             </div>
             <ul class="user-tab-box">
-              <router-link tag="li" to="/user/gender">
-                <strong>{{ gender }}</strong>
+              <router-link tag="li" to="/gender">
+                <strong>{{ info.profile.gender }}</strong>
                 <span>动态</span>
               </router-link>
               <router-link tag="li" to="/user/follows">
-                <strong>{{ follows }}</strong>
+                <strong>{{ info.profile.follows }}</strong>
                 <span>关注</span>
               </router-link>
               <router-link tag="li" to="/user/followeds">
-                <strong>{{ followeds }}</strong>
+                <strong>{{ info.profile.followeds }}</strong>
                 <span>粉丝</span>
               </router-link>
             </ul>
             <div class="user-address inf">
-              <span>所在地区: {{ address }}</span>
+              <span>所在地区: {{ info.address || '-' }}</span>
             </div>
           </div> 
         </div>
+        <div class="song-rank">
+          <div class="title">
+            <h2>
+              听歌排行
+              <small>累计听歌{{ info.listenSongs }}首</small>
+            </h2>
+            <div class="btn">
+              <span 
+                :class="time ? 'is-active' : ''"
+                @click="changeTime(true)"
+              >
+                最近一周
+              </span>
+              <span 
+                :class="!time ? 'is-active' : ''"
+                @click="changeTime(false)"
+              >
+                所有时间
+              </span>
+            </div>
+          </div>
+          <song-list :songLists="songlist"></song-list>
+        </div>
+      </div>
+      <div class="right">
+        <user-playlist :userName="userName"></user-playlist>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import SongList from '../song-list'
+import UserPlaylist from './user-playlist'
 export default {
   data(){
     return {
-      url: '',
-      name: '',
-      level: '',
-      gender: '',
-      follows: null,
-      followeds: null,
-      address: '-',
+      info: {},
+      time: true,
+      type: 1,
+      id: this.$route.query.id,
+      songlist: [],
+      userName: '',
     }
   },
-  created(){
-    this.$api.UserDetail(this.$store.state.uid)
-      .then(res => {
-        this.url = res.data.profile.avatarUrl;
-        this.name = res.data.profile.nickname;
-        this.level = res.data.level;
-        this.gender = res.data.profile.gender;
-        this.follows = res.data.profile.follows;
-        this.followeds = res.data.profile.followeds;
-        console.log(res)
-      }) 
-      this.$api.UserSubcount()
+  components: {
+    SongList,
+    UserPlaylist,
+  },
+  mounted(){
+    this.init();
+  },
+  methods: {
+    init(){
+      this.$nextTick( () => {
+        this.getUser();
+        this.getUserRecord();
+      })
+
+    },
+
+    // 获取用户信息
+    async getUser(){
+      await this.$api.UserDetail(this.id)
         .then(res => {
-          console.log(res)
+          this.info = res.data;
+          this.userName = this.info.profile.nickname;
+        }) 
+    },
+
+
+    // 获取用户播放记录
+    async getUserRecord(){
+      await this.$api.UserRecord({
+        uid: this.id,
+        type: this.type,
+      })
+        .then(res => {
+          this.songlist = res.data.weekData || res.data.allData;
         })
+    },
+
+    // 改变听歌排行
+    changeTime(flag){
+      if(flag == this.time) return
+      if(flag){
+        this.type = 1;
+      }else{
+        this.type = 0;
+      }
+      this.songlist.length = 0;
+      this.time = flag;
+      this.getUserRecord();
+    },
   }
 }
 </script>
 
 <style lang="scss" scoped>
   .container{
+    display: flex;
     padding: 40px;
   }
-  .user-main{
-    background: #f5f5f5;
-
+  .left{
+    @include shadow;
+    @include left;
     .user-detail{
       display: flex;
       margin-bottom: 43px;
@@ -171,5 +233,37 @@ export default {
         }
       }
     }
+    .song-rank{
+      .title{
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        h2{
+          padding-left: 20px;
+          font-size: 14px;
+          color: #666;
+          font-weight: 500;
+          border-left: 2px solid $mainColor;
+        }
+        .btn{
+          margin-right: 10px;
+          font-size: 14px;
+          span{
+            cursor: pointer;
+          }
+          .is-active{
+            color: $mainColor;
+          }
+          span:last-child{
+            padding-left: 5px;
+            border-left: 1px solid #666;
+          }
+        }
+      }
+    }
   }
+  .right{
+    @include right;
+  }
+    
 </style>

@@ -4,53 +4,56 @@ export default {
   /**
    * @method 手机登录
    */
-  async PhoneLogin(phone,password){
+  PhoneLogin(phone,password){
     return api.get(`/login/cellphone?phone=${phone}&password=${password}&cookie=${phone}`)
   },
   /**
    * @method 获取登陆状态
    */
-  async LoginStatus(){
+  LoginStatus(){
     return api.get('/login/status');
   },
   /**
    * @method 退出登录
    */
-  async Logout(){
+  Logout(){
     return api.get('/logout');
   },
   /**
    * @method 刷新登录状态
    */
-  async LoginRefresh(){
-    return api.get('login/refresh');
+  LoginRefresh(){
+    return api.get('/login/refresh');
   },
   /**
    * @method 获取用户信息
    */
-  async UserSubcount(){
-    return api.post('/user/subcount');
+  UserSubcount(){
+    return api.get('/user/subcount');
   },
   /**
    * @method 用户详情
    */
-  async UserDetail(uid){
-    return api.post('user/detail',{
-      uid,
-    });
+  UserDetail(uid){
+    return api.get(`/user/detail?uid=${uid}`);
   },
   /**
    * @method 获取用户等级信息
    */
-  async UserLevel(){
+  UserLevel(){
     return api.post('user/level')
   },
   /**
    * @method 获取用户歌单
    */
-  async UserPlayList(uid){
-    return api.post('user/playlist',{
-      uid,
-    })
-  }
+  UserPlaylist(uid){
+    return api.get(`user/playlist?uid=${uid}`)
+  },
+
+  /**
+   * @method 获取用户播放记录
+   */
+  UserRecord(params){
+    return api.get(`/user/record`,{params})
+  },
 }
