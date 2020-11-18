@@ -1,0 +1,96 @@
+
+#app,body,.app{
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+}
+body,html,ul,li,p,h2{
+  margin: 0;
+  padding: 0;
+  color: #4a4a4a;
+  *{
+    outline: 0;
+  }
+
+  a{
+    text-decoration: none;
+  }
+  li{
+    list-style: none;
+  }
+  .container{
+    @include container;
+  }
+  .back{
+    background: #fff;
+  }
+  .title{
+    font-size: 16px;
+    margin: 0;
+  }
+
+}
+.el-slider__bar{
+  background-color: $mainColor;
+}
+.el-pagination.is-background .el-pager li:not(.disabled).active{
+  background: $mainColor;
+}
+.el-pagination.is-background .el-pager li:not(.disabled):not(.active):hover{
+  color: $mainColor;
+}
+.el-image__placeholder {
+  background: #fff url('../../assets/loading.svg') no-repeat 50% 50% !important;
+  background-size: 50% !important;
+}
+.el-loading-spinner .el-loading-text{
+  color: #4a4a4a;
+}
+.el-loading-spinner .path{
+  stroke: #4a4a4a;
+}
+.shadow{
+  box-shadow: 0 5px 40px -1px rgba(2,10,18,.1);;
+}
+.el-input.is-active .el-input__inner, .el-input__inner:focus{
+  border-color: #888;
+}
+.el-scrollbar__wrap {
+  overflow: scroll;
+  height: 100%;
+} 
+.page-component__scroll  {
+  height: 500px;
+}
+.el-input{
+  height: 100%;
+}
+.el-image{
+  @include flex;
+  width: 100%;
+  height: 100%;
+  .image-slot{
+    font-size: 30px;
+    color: #4a4a4a;
+  }
+}
+
+
+@keyframes fly {
+  0%{
+    transform: translateY(0);
+  }
+  25%{
+    transform: translateY(50%);
+  }
+  50%{
+    transform: translateY(90%);
+  }
+  75%{
+    transform: translateY(50%);
+  }
+  100%{
+    transform: translateY(0);
+  }
+}
+

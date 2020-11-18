@@ -1,0 +1,48 @@
+$mainColor: #fa2800;
+$backColor: #f0eeee;
+
+@mixin right {
+  width: 350px;
+}
+@mixin shadow{
+  box-shadow: 0 5px 40px -1px rgba(2,10,18,.1);
+}
+@mixin left{ 
+  width: 860px;
+  padding: 15px;
+  border-radius: 8px;
+  margin-right: 20px;
+}
+@mixin title{
+  padding-left: 1rem;
+  margin-bottom: 15px;
+  height: 20px;
+  border-left: 3px solid #fa2800;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+@mixin rightMain{
+  padding: 15px 15px 0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+@mixin minHeight{
+  min-height: 557px;
+}
+@mixin flex{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@mixin ellipse{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@mixin container{
+  position: relative;
+  max-width: 1260px;
+  width: 100%;
+  margin: 0 auto;
+}
