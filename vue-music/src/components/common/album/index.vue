@@ -4,11 +4,13 @@
       class="item"
       v-for="item in list"
       :key="item.id"
+      v-loading="loading"
     >
       <div class="cover">
         <el-image
           :src="item.picUrl"
-          fit="cover">
+          fit="cover"
+          @load="num++">
         </el-image>
         <div class="type">
           <i class="el-icon-service"></i>
@@ -34,16 +36,15 @@ export default {
   },
   data(){
     return{
-
+      num: 0,
+      loading: true,
     }
   },
-  mounted(){
-    this.init()
-  },
-
-  methods:{
-    init(){
-
+  watch: {
+    num(val){
+      val >= this.list.length - 2 ? 
+        this.loading = false :
+        this.loading = true;
     }
   }
 }
@@ -73,7 +74,7 @@ export default {
           transform: translateY(-100%);
           width: 100%;
           height: 100%;
-          background: url('../../../assets/cd.png') no-repeat center;
+          background: url('../../../assets/img/cd.png') no-repeat center;
           transition: all .4s ease;
         }
         .type{

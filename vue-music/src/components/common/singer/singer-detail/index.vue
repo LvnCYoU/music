@@ -58,10 +58,10 @@
 </template>
 
 <script>
-import SongList from '../../song-list'
-import Album from '../../album'
-import Singer from '../../singer/singer'
-import Mv from '../../MV/mv'
+import SongList from 'components/common/song-list'
+import Album from 'components/common/album'
+import Singer from 'components/common/singer'
+import Mv from 'components/common/MV'
 export default {
   data(){
     return{

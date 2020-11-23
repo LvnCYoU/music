@@ -1,245 +1,153 @@
 <template>
-  <div id="singer">
-    <div class="container">
-      <div class="filter">
-        <ul class="tag-lang">
-          <li 
-          :class="item.type == params.area ? 'is-active' : ''"
-          v-for="item in area" 
-          :key="item.type"
-          @click="chooseType('area',item.type)"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-        <ul class="tag-type">
-          <li v-for="item in type" 
-          :class="item.type == params.type ? 'is-active' : ''"
-          :key="item.type + item.name"
-          @click="chooseType('type',item.type)"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-        <ul class="tag-en">
-          <li 
-          :class="params.initial == item.type ? 'is-active' : ''"
-          v-for="item in letter" 
-          :key="item.type+item.name"
-          @click="chooseType('initial',item.type)"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-      </div>
-      <singer :artist="artist" :loading="loading"/>
-      <push-load v-show="loadStatus" @scroll-data='load'/>
-    </div>
+  <div class="load-more" 
+    ref="loading"
+    :data="artist"
+    style="height: 100%; width: 100%"
+    >
+    <ul class="singer-list">
+      <li 
+      v-for="(item,index) in artist"
+      :key="item.id + item.name">
+        <router-link 
+        tag="a" 
+        :to="{name:'singer-detail',query:{id:item.id}}"
+        >
+          <div class="cover">
+            <div class="img">
+              <el-image 
+                :src="item.imgUrl || item.picUrl" 
+                fit="fill"  
+                @load="loadImg(item)"
+                v-loading="item.load"
+                :data="artist[index].imgUrl || artist[index].picUrl"
+                element-loading-background="#fff"
+              >
+                <div slot="error" class="image-slot">
+                  <i class="el-icon-picture-outline"></i>
+                </div>
+              </el-image>
+            </div>
+          </div>
+          <div class="info">
+            <p class="name">{{ item.name }}</p>
+            <p class="count">单曲数{{ item.music || item.musicSize }}</p>
+          </div>
+        </router-link>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script>
-import {mapActions,mapState} from 'vuex';
-import pushLoad from '../push-load';
-import Singer from './singer'
 export default {
-  data(){
-    return{
-      artist: [],
-      loading: true,
-      loadStatus: true,
-      // 歌手筛选信息值
-      area: [
-        {
-          name: '全部',
-          type: -1,
-        },
-        {
-          name: '华语',
-          type: 7,
-        },
-        {
-          name: '欧美',
-          type: 96
-        },
-        {
-          name: '日本',
-          type: 8
-        },
-        {
-          name: '韩国',
-          type: 16
-        },
-        {
-          name: '其他',
-          type: 0
-        }
-      ],
-      type: [
-        {
-          name: '全部',
-          type: -1
-        },
-        {
-          name: '男歌手',
-          type: 1
-        },
-        {
-          name: '女歌手',
-          type: 2
-        },
-        {
-          name: '乐队',
-          type: 3
-        }
-      ],
-      letter: [],
-      params: {
-        limit: 40,
-        offset: 0,
-        initial: -1,
-        type: -1,
-        area: -1,
+  props: {
+    artist: {
+      type: Array,
+      required: true,
+    },
+  },
+  watch:{
+    artist(val){
+      console.log(val)
+      if(val.length <= 40){
+        this.img = 0;
+        return this.artist = val;
       }
     }
   },
-  computed:{
-    ...mapState(['singer'])
+  data(){
+    return{
+      img: 0,
+      loading: true,
+      len: 0,
+    }
   },
   mounted(){
     this.init();
   },
-  components: {
-    pushLoad,
-    Singer,
-  },
-  methods: {
-    ...mapActions(['singerInit']),
 
-    init(){ 
+  methods:{
+    init(){
       this.$nextTick( () => {
-        if(this.singer.area){
-          this.params = this.singer;
-          this.params.offset = 0;
-        }
-        this.getLetter();
-        this.getSinger(this.params);
+        console.log(this.artist)
       })
+
+      this.len = this.artist.length;
     },
 
-    // a-z 字母获取
-    getLetter(){
-      let ens = [];
-      for(let i = 0; i < 26; i++){
-        ens.push({
-          name: String.fromCharCode(65 + i),
-          type: String.fromCharCode(97 + i)
+    // 图片加载
+    loadImg(item){
+      if(this.img > this.len - 5){
+        this.$nextTick( () => {
+          this.loading = false;
+          item.load = false;
+          return;
         })
       }
-      ens.unshift({
-        name: '热门',
-        type: -1,
-      })
-      ens.push({
-        name: '其他',
-        type: 0
-      })
-      this.letter = ens;
+      this.loading = true;
+      ++this.img;
     },
-
-    // 获取歌手列表
-    async getSinger(params){
-      let arrSinger = [];
-      this.singerInit(params);
-      await this.$api.ArtistList(params)
-        .then( res => {
-          arrSinger = res.data.artists;
-        })
-      arrSinger.map( list => {
-        let obj = {
-          id: list.id,
-          imgUrl: list.picUrl,
-          name: list.name,
-          music: list.musicSize,
-          load: true,
-        };
-        this.artist.push(obj);
-      })
-    },
-
-    chooseType(str,val){
-      let actions = {
-        'area': () => this.params.area = val,
-        'initial': () => this.params.initial = val,
-        'type' : () => this.params.type = val,
-      }
-      actions[`${str}`].call(this)
-      this.params.offset = 0;
-      this.singerInit(this.params);
-      this.getSinger(this.params);
-      this.artist.length = 0;
-    },
-
-    load(){
-      this.loadStatus && setTimeout( () => {
-        this.params.offset += this.params.limit;
-        this.getSinger(this.params);
-      },1000)
-      this.loadStatus = true;
-    }
-
-
   }
 }
 </script>
-<style lang="scss" scoped>
-#singer{
-  z-index: -1;
-}
-  .filter{
-    ul{
-      margin: 20px 0;
-      display: flex;
-      
-      li{
-        margin-right: 6px;
-        width: 56px;
-        height: 28px;
-        line-height: 28px;
-        font-size: 13px;
-        text-align: center;
-        border-radius: 14px;
-        cursor: pointer;
 
-        &.is-active{
-          background: $mainColor;
-          font-weight: 700;
-          color: #fff;
+<style lang="scss" scoped>
+  .load-more{
+    ul{
+      margin: 30px 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      li{
+        padding: 0 15px 30px;
+        flex: 0 0 10%;
+        max-width: 10%;
+
+        .cover{
+          position: relative;
+          z-index: 2;
+          padding-top: 100%;
+          border-radius: 50%;
+          // background-color: #d9d9d9;
+          .img{
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+          }
+          .el-image{
+            height: 100%;
+          }
+          
+        }
+        .info{
+          margin-top: 15px;
+          text-align: center;
+          .name{
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 18px;
+            word-break: break-word;
+          }
+          .count{
+            font-size: 12px;
+            margin-top: 10px;
+            color: #fa2800;
+          }
         }
 
-        
-      }
-    }
-    .tag-en{
-      margin: 10px 0 0;
-      li{
-        width: 28px;
-        height: 28px;
-        margin-right: 14px;
-        text-align: center;
-        line-height: 28px;
-        border-radius: 50%;
-        font-size: 13px;
-        color: #333;
-        cursor: pointer;
-
-        &:first-child,&:last-child{
-          width: 56px;
-          border-radius: 14px;
+        &:hover{
+          .info{
+            .name{
+              color: #fa2800;
+            }
+            
+          }
         }
       }
     }
   }
-
   
 </style>

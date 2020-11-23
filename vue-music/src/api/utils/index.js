@@ -155,7 +155,8 @@ export default{
 
   // 处理音乐id
   MusicId(arr){
-    let id = arr.reduce( (pre,cur) => {
+    let list = arr.slice(0,100);
+    let id = list.reduce( (pre,cur) => {
       return pre + cur.id + ','
     },'')
     id = id.substr(0, id.length - 1);

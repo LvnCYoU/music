@@ -1,225 +1,183 @@
 <template>
-  <div id="mv">
-    <div class="container">
-      <div class="filter">
-        <ul class="tag-area">
-          <li 
-          :class="item.type == params.area ? 'is-active' : ''"
-          v-for="item in area" 
-          :key="item.type"
-          @click="chooseType('area',item.type)"
-          ref="area"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-        <ul class="tag-type">
-          <li v-for="item in type" 
-          :class="item.type == params.type ? 'is-active' : ''"
-          :key="item.type + item.name"
-          @click="chooseType('type',item.type)"
-          ref="sex"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-        <ul class="tag-order">
-          <li 
-          :class="params.order == item.type ? 'is-active' : ''"
-          v-for="item in order" 
-          :key="item.type+item.name"
-          @click="chooseType('order',item.type)"
-          ref="lang"
-          >
-            {{ item.name }}
-          </li>
-        </ul>
-      </div>
-      <mv :list="mv" />
-      <push-load v-show="loadStatus" @scroll-data='load'/>
-    </div>
+<div>
+  <div class="mv" 
+    ref="loading"
+    v-if="list.length>1"
+    v-loading="loading"
+    element-loading-text="拼命加载中"
+    element-loading-background="#fff"
+    :data="list"
+    style="height: 100%; width: 100%"
+    >
+    <ul class="mv-list">
+      <router-link 
+        tag="li" 
+        :to="{name:'singer-detail',query:{id:item.id}}"
+        v-for="item in list"
+        :key="item.name"
+      >
+        <div class="cover">
+          <div class="img">
+            <el-image 
+              :src="item.cover || item.imgurl" 
+              fit="cover" 
+              @load="load"
+              lazy
+            >
+            </el-image>
+          </div>
+          <div class="count">
+            <i class="el-icon-caret-right"></i>
+            <span>
+              {{ utils.SimplifyPlayCount(item.count || item.playCount) }}
+            </span>
+          </div>
+          <div class="action">
+            <span class="flex-center">
+              <i class="el-icon-caret-right"></i>
+            </span>
+          </div>
+        </div>
+        <div class="info">
+          <h2 class="ellipsis">{{ item.name }}</h2>
+        </div> 
+      </router-link>
+    </ul>
   </div>
+  <div class="error" v-if="list.length==0">
+    <p>暂未发布mv，去别处逛逛吧~</p>
+  </div>
+</div>
+
 </template>
 
 <script>
-import {mapActions} from 'vuex'
-import pushLoad from '../push-load';
-import Mv from './mv'
 export default {
-  data(){
-    return{
-      loading: true,
-      loadStatus: true,
-      mv: [],
-      // 获取mv配置项
-      area: [
-        {
-          name: '全部',
-          type: '',
-        },
-        {
-          name: '内地',
-          type: '内地',
-        },
-        {
-          name: '港台',
-          type: '港台',
-        },
-        {
-          name: '欧美',
-          type: '欧美',
-        },
-        {
-          name: '日本',
-          type: '日本'
-        },
-        {
-          name: '韩国',
-          type: '韩国'
-        }
-      ],
-      type: [
-        {
-          name: '全部',
-          type: '',
-        },
-        {
-          name: '官方版',
-          type: '官方版',
-        },
-        {
-          name: '原生',
-          type: '原生',
-        },
-        {
-          name: '现场版',
-          type: '现场版',
-        },
-        {
-          name: '网易出品',
-          type: '网易出品'
-        },
-      ],
-      order: [
-        {
-          name: '上升最快',
-          type: '',
-        },
-        {
-          name: '最新',
-          type: '最新',
-        },
-        {
-          name: '最热',
-          type: '最热',
-        },
-      ],
-      params: {
-        area: '',
-        type: '',
-        order: '',
-        limit: 16,
-        offset: 0,
-      },
+  props: {
+    list: {
+      type: Array,
+      required: true,
     }
   },
-  components: {
-    pushLoad,
-    Mv,
-  },
-  mounted(){
-    this.init();
+  data(){
+    return {
+      flag: false,
+      num: 0,
+      loading: true,
+    }
   },
   methods: {
-    ...mapActions(['mvInit']),
-
-    init(){
-      if(this.$store.state.mv.offset){
-        this.params = this.$store.state.mv;
-        this.params.offset = 0;
-      }
-      this.getMv(this.params);
-    },
-
-    // 获取mv
-    async getMv(params){
-      this.mvInit(params);
-      await this.$api.MvAll(params)
-        .then( res => {
-          let arr = res.data.data;
-          arr.map( list => {
-            let obj = {
-              artistName: list.artistName,
-              name: list.name,
-              count: list.playCount,
-              duration: list.duration,
-              cover: list.cover,
-            }
-            this.mv.push(obj)
-          })
-        })
-      if(this.mv.length > 10){
-        this.loading = false;
-      }
-    },
-
-    // 类别选择
-    chooseType(str,val){
-      let actions = {
-        'area': () => this.params.area = val,
-        'order': () => this.params.order = val,
-        'type' : () => this.params.type = val,
-      }
-      actions[`${str}`].call(this)
-      this.mv.length = 0;
-      this.loading = true;
-      this.params.offset = 0;
-      this.mvInit(this.params);
-      this.getMv(this.params);
-    },
-
     load(){
-      this.loadStatus && setTimeout( () => {
-        this.params.offset += this.params.limit;
-        this.getMv(this.params);
-      },1500)
-      this.loadStatus = true;
+      if (this.num >= this.list.length - 5) {
+        this.loading = false;
+        return
+      }
+      ++this.num;
     }
-  },
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-  .filter{
-    ul{
-      margin: 20px 0;
-      display: flex;
-      
-      li{
-        margin-right: 6px;
-        width: 56px;
-        height: 28px;
-        line-height: 29px;
-        font-size: 13px;
-        text-align: center;
-        border-radius: 14px;
-        cursor: pointer;
-
-        &.is-active{
-          background: #fa2800;
-          font-weight: 700;
+  .mv-list{
+    margin: 0 -15px;
+    padding: 15px 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    cursor: pointer;
+    li{
+      padding: 0 15px 30px;
+      flex: 0 0 22%;
+      max-width: 22%;
+      .cover{
+        position: relative;
+        overflow: hidden;
+        .count{
+          position: absolute;
+          right: 16px;
+          top: 1px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 24px;
+          line-height: 24px;
+          padding-left: 9px;
+          background: url(https://img.alicdn.com/tfs/TB1xEGRub9YBuNjy0FgXXcxcXXa-268-48.png) no-repeat 0;
+          background-size: cover;
           color: #fff;
+          font-size: 12px;
+          font-weight: 700px;
+          &:after{
+            content: '';
+            position: absolute;
+            right: -14px;
+            top: 0;
+            height: 24px;
+            width: 14px;
+            background: url(https://img.alicdn.com/tfs/TB1xEGRub9YBuNjy0FgXXcxcXXa-268-48.png) no-repeat 100%;
+            background-size: cover;
+          }
+          i{
+            margin-right: 2px;
+            font-size: 14px;
+          }
+        }
+        .img{
+          transition: all .4s ease;
         }
       }
-    }
-    .tag-order{
-      li{
-        &:first-child{
-          width: 102px;
-          border-radius: 14px;
+      .info{
+        h2{
+          display: block;
+          line-height: 1.3;
+          font-size: 14px;
+          font-weight: 500;
+        }
+      }
+      .action{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: none;
+        transform: translate(-50%,-50%);
+        span{
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: $mainColor;
+          color: #fff;
+          i{
+            font-size: 22px; 
+          }
+        }
+      }
+      &:hover{
+        .cover{
+          .img{
+            transform: scale(1.1);
+          }
+          .count{
+            color: $mainColor;
+          }
+          .action{
+            display: flex;
+          }
+        }
+        .info{
+          h2{
+            color: #000;
+          }
         }
       }
     }
   }
-
+  .error{
+    padding: 10px;
+    padding-left: 0;
+    p{
+      font-size: 14px;
+      color: #999;
+    }
+  }
 </style>

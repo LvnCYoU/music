@@ -1,6 +1,6 @@
 <template>
   <div class="song-list" 
-    v-loading="false"
+    v-loading="loading"
     :data="list"
     element-loading-text="拼命加载中"
     element-loading-background="#fff"
@@ -18,7 +18,7 @@
                 playStatus ? 
                 'item is-active' : 'item' : 'item' "
         v-for="(item,index) in list" 
-        :key="item.id" 
+        :key="item.id + index" 
         ref="list"
         @click="showPlayer(item.id,item.al.id,index)"
       >
@@ -65,9 +65,7 @@
       class="load-more" 
       v-show="!error"
     >
-      <div class="more">
-        <span @click="loadSong">查看更多</span>
-      </div>
+      <load :list="songLists" :num="10" @load="list = $event" />
     </div>
     <div class="error" v-show="error">
       <span>暂时没有播放数据噢~</span>
@@ -77,6 +75,7 @@
 
 <script>
 import {mapGetters,mapActions,mapState} from 'vuex'
+const Load = () => import('../click-more')
 export default {
   props: {
     songLists: {
@@ -87,37 +86,24 @@ export default {
   data(){
     return{
       list: [],
-      loading: false,
+      loading: true,
       error: false,
       max: 0,
     }
   },
   computed: {
-    ...mapState(['audio','playStatus','playing','songId']),
+    ...mapState(['audio','playStatus','playing','songId','isLoading']),
     ...mapGetters(['getSongId','getCurrentSong','getPlayStatus']),
 
   },
   watch: {
     songLists(val){
-      if(val.length == 0){
-        this.list.length = 0;
-        this.error = true;
-        return ;
-      }else{
-        this.error = false;
-        let arr = val.slice(0,this.max || 10);
-        this.list.length = 0;
-        if(val[0].song){
-          arr.map(list => {
-            let obj = list.song;
-            this.list.push(obj)
-          })
-        }else{
-          this.list = arr
-        }
-      }
-      
+      this.list.length = 0;
+      val.length == 0 ? this.error = true : this.error = false;
     },
+  },
+  components: {
+    Load,
   },
   mounted(){
     this.init();
@@ -130,6 +116,10 @@ export default {
     
     init(){
       this.playStatus && this.getPlayStatus(false);
+      this.$nextTick( () => {
+        console.log(this.loading)
+        this.loading = false;
+      })
     },
 
     // 处理序号
@@ -160,18 +150,8 @@ export default {
     },
 
     // 加载更多歌曲
-    loadSong(){ 
-      let len = this.list.length;
-      this.max = len + 10;
-      if(this.songLists[0].song){
-        let arr = this.songLists.slice(len,this.max);
-        arr.map(list => {
-          let obj = list.song;
-          this.list.push(obj);
-        })
-      }else{
-        this.list = this.songLists.slice(0,this.max);
-      }
+    loadSong(data){ 
+      this.list = data;
     },
 
   }
@@ -302,21 +282,11 @@ export default {
   }
   .load-more{
     margin-top: 20px;
-    .more{
-      @include flex;
-      padding: 10px;
-      span{
-        transform: translateX(-20px);
-        cursor: pointer;
-        &:hover{
-          color: $mainColor;
-        }
-      }
-    }
+
   }
   .error{
-      @include flex;
-      margin-top: 20px;
+    @include flex;
+    margin-top: 20px;
   }
   
 </style>

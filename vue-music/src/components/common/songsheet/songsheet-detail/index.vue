@@ -102,7 +102,6 @@ export default {
   },
   methods: {
     ...mapActions(['currentSong','songsList']),
-
     init(){
       this.getSongSheetDetail();
     },

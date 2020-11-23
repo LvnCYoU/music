@@ -41,7 +41,7 @@ export default {
    * @method 获取用户等级信息
    */
   UserLevel(){
-    return api.post('user/level')
+    return api.get('user/level')
   },
   /**
    * @method 获取用户歌单

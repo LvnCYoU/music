@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import SongList from '../../songsheet/songsheet_scss'
+import SongList from 'components/common/songsheet'
 export default {
   data(){
     return {

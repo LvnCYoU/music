@@ -9,11 +9,11 @@
 </template>
 
 <script>
-const AppHeader = () => import('./components/header')
-const AppMain = () => import('./components/main')
-const Player = () => import('./components/player')
-const AppFooter = () => import('./components/footer')
-const BackTop = () => import('./components/common/go-top')
+const AppHeader = () => import('@/view/header')
+const AppMain = () => import('@/view/main')
+const Player = () => import('@/view/player')
+const AppFooter = () => import('@/view/footer')
+const BackTop = () => import('components/common/go-top')
 export default {
   mounted(){  
     window.addEventListener('unload', this.saveState)

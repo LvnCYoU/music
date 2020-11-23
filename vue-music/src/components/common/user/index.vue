@@ -34,7 +34,7 @@
               </router-link>
             </ul>
             <div class="user-address inf">
-              <span>所在地区: {{ info.address || '-' }}</span>
+              <span>所在地区: {{ province + '-' + city }}</span>
             </div>
           </div> 
         </div>
@@ -81,11 +81,19 @@ export default {
       id: this.$route.query.id,
       songlist: [],
       userName: '',
+      province: '',
+      city: '',
     }
   },
   components: {
     SongList,
     UserPlaylist,
+  },
+  watch: {
+    $route(to){
+      this.id = to.query.id;
+      this.init();
+    }
   },
   mounted(){
     this.init();
@@ -96,7 +104,6 @@ export default {
         this.getUser();
         this.getUserRecord();
       })
-
     },
 
     // 获取用户信息
@@ -105,7 +112,11 @@ export default {
         .then(res => {
           this.info = res.data;
           this.userName = this.info.profile.nickname;
+          this.province = this.info.profile.province;
+          this.city = this.info.profile.city;
+          this.province && this.getArea();
         }) 
+      
     },
 
 
@@ -132,6 +143,21 @@ export default {
       this.time = flag;
       this.getUserRecord();
     },
+
+    // 获取用户所在地区
+    async getArea(){
+      await this.$api.getDistrict(this.province)
+        .then(res => {
+          let data = res.data.districts[0]
+          this.province = data.name;
+          data.districts.some(list => {
+            if(list.adcode == this.city){
+              this.city = list.name;
+              return true;
+            }
+          })
+        })
+    }
   }
 }
 </script>

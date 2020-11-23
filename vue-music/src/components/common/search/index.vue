@@ -34,13 +34,13 @@
 </template>
 
 <script>
-import Star from '../star'
-import SearchInput from '../input'
-import SongList from '../song-list'
-import SongSheet from '../songsheet/songsheet_scss'
-import Singer from '../singer/singer'
-import Album from '../album'
-import Error from '../error'
+const Star = () => import('components/common/star')
+const SearchInput = () => import('components/common/input')
+const SongList = () => import('components/common/song-list')
+const SongSheet = () => import('components/common/songsheet')
+const Singer = () => import('components/common/singer')
+const Album = () => import('components/common/album')
+const Error = () => import('components/common/error')
 export default {
   data(){
     return{

@@ -5,13 +5,13 @@ export default {
    * @method 获取轮播图
    */
   Banner(type){
-    return api.get(`/banner?${type}`);
+    return api.get(`/banner?type=${type || 0}`);
   },
   /**
    * @method 获取推荐歌单
    */
   Personalized(limit){
-    return api.post(`/personalized?limit=${limit}`)
+    return api.get(`/personalized?limit=${limit}`)
   },
   /**
    * @method 获取歌单详情
@@ -23,13 +23,13 @@ export default {
    * @method 获取推荐新音乐
    */
   PersonalizedNewSong(){
-    return api.post('personalized/newsong');
+    return api.get('personalized/newsong');
   },
   /**
    * @method 获取音乐url
    */
   SongUrl(id){
-    return api.post(`/song/url?id=${id}`)
+    return api.get(`/song/url?id=${id}`)
   },
   /**
    * @method 获取歌词
@@ -53,21 +53,21 @@ export default {
    * @method 获取所有榜单
    */
   TopList(){
-    return api.post('/toplist');
+    return api.get('/toplist');
   },
 
   /**
    * @method 歌单分类
    */
   PlaylistCatlist(){
-    return api.post('/playlist/catlist')
+    return api.get('/playlist/catlist')
   },
 
   /**
    * @method 热门歌单分类
    */
   PlaylistHot(){
-    return api.post('playlist/hot');
+    return api.get('playlist/hot');
   },
 
   /**
@@ -81,7 +81,7 @@ export default {
    * @method  精品歌单标签列表
    */
   PlaylistHighTags(){
-    return api.post('/playlist/highquality/tags')
+    return api.get('/playlist/highquality/tags')
   },
 
   /**
@@ -89,7 +89,7 @@ export default {
    */
   TopPlaylistHigh(str,before){
     let cat = str || '全部'
-    return api.post('/top/playlist/highquality',{
+    return api.get('/top/playlist/highquality',{
       cat,
       limit: 40,
       before,

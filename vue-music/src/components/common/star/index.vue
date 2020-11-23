@@ -15,20 +15,20 @@
     right: 0;
   }
   div#background{
-    background: url("./img/preview.jpg")no-repeat;
+    background: url("../../../assets/img/preview.jpg")no-repeat;
     background-size: cover;
     background-position: center;
   }
   div#midground{
-    background: url("./img/midground.png");
+    background: url("../../../assets/img/midground.png");
     animation: cc 100s linear infinite;
   }
   div#foreground{
-    background: url("./img/foreground.png");
+    background: url("../../../assets/img/foreground.png");
     animation: cc 153s linear infinite;
   }
   div#top{
-    background: url("./img/midground.png");
+    background: url("../../../assets/img/midground.png");
     animation: da 100s linear infinite;
   }
   @keyframes cc {

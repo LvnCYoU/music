@@ -1,3 +1,9 @@
+const TerserPlugin = require('terser-webpack-plugin');
+const path = require("path");
+function resolve(dir) {
+  return path.join(__dirname, dir);
+}
+
 module.exports = {
   // 部署应用时的根路径(默认'/'),也可用相对路径(存在使用限制)
   publicPath: process.env.NODE_ENV === 'production' ? './' : '/',
@@ -8,8 +14,10 @@ module.exports = {
   //指定生成的 index.html 的输出路径(相对于 outputDir)也可以是一个绝对路径。
   indexPath: 'index.html',
   // 是否在开发环境下通过 eslint-loader 在每次保存时 lint 代码 (在生产构建时禁用 eslint-loader)
-  lintOnSave: process.env.NODE_ENV !== 'production',
+  lintOnSave: process.env.NODE_ENV !== 'production', 
+  productionSourceMap: false, // 加快打包速度
   css: {
+    sourceMap: false,
     loaderOptions: {
       scss: {
         data: '@import "@/common/css/index.scss";'
@@ -19,20 +27,81 @@ module.exports = {
       }
     }
   },
-  devServer: {
-    port: 8080,
-    open: true,
-    hotOnly: true,
-    proxy: {
-      '/rng': {     //这里最好有一个 /
-          target: 'https://restapi.amap.com/v3/config/',  // 后台接口域名
-          ws: true,        //如果要代理 websockets，配置这个参数
-          secure: true,  // 如果是https接口，需要配置这个参数
-          changeOrigin: true,  //是否跨域
-          pathRewrite:{
-              '^/rng':''
+  // 配置消除console.log
+  configureWebpack: config => {
+    process.env.NODE_ENV === 'production' &&
+      config.plugins.push(
+        new TerserPlugin({
+          terserOptions: {
+            ecma: undefined,
+            warnings: false,
+            parse: {},
+            compress: {
+              drop_console: true,
+              drop_debugger: false,
+              pure_funcs: ['console.log'] // 移除console
+            }
           }
+        })
+      )
+    // 公共方法抽离
+    config.optimization = {
+      splitChunks: {
+        cacheGroups: {
+          vendor: {
+            chunks: 'all',
+            test: '/node_moudules',
+            name: 'vendor',
+            minChunks: 1,
+            maxInitialRequests: 5,
+            minSize: 0,
+            priority: 100,
+          }
+        }
       }
     }
-  }
+  },
+  chainWebpack: config => {
+    // 资源路径别名
+    config.resolve.alias
+      .set("@", resolve("src"))
+      .set("assets", resolve("src/assets"))
+      .set("components", resolve("src/components"))
+      .set('static', path.resolve(__dirname, 'src/static'));
+
+    // 移除多余插件 (移动端有效)
+    config.plugins.delete('prefetch').delete('preload');
+    config.optimization.minimize(true);
+    // 压缩图片
+    config.module
+      .rule('images')
+      .use('image-webpack-loader')
+      .loader('image-webpack-loader')
+      .options({
+        mozjpeg: { progressive: true, quality: 65 },
+        optipng: { enabled: false },
+        pngquant: { quality: [0.65, 0.9], speed: 4 },
+        gifsicle: { interlaced: false },
+      })
+      .end();
+    
+
+  },
+  devServer: {
+    port: 8080,
+    host: 'localhost',
+    open: true,
+    hotOnly: true,
+    https: false,
+    proxy: {
+      '/proxy': { 
+        target: process.env.VUE_APP_SERVICE_URL, // 后台接口域名
+        ws: true,        //如果要代理 websockets，配置这个参数
+        changeOrigin: true,  //是否跨域
+        pathRewrite:{
+          '^/proxy':'',
+        }
+      }, 
+    }
+  }, 
 }

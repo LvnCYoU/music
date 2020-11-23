@@ -57,12 +57,10 @@ export default {
 
 <style lang="scss" scoped>
   .load-more-singer{
+    @include flex;
     margin: 50px auto;
-    display: flex;
     width: 100px;
-    justify-content: center;
     flex-direction: column;
-    text-align: center;
     cursor: pointer;
     span{
       font-size: 14px;
@@ -75,7 +73,7 @@ export default {
     }
     &:hover,&.scroll-bottom{
       span{
-        color: #fa2800;
+        color: $mainColor;
       }
       i{
         transform: rotate(180deg) translateY(-15px);

@@ -2,14 +2,14 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import store from '../store'
 import {Message} from 'element-ui'
-const AppHome = () => import('../components/common/home');
-const AppRank = () => import('../components/common/rank');
-const AppSinger = () => import('../components/common/singer');
-const AppMv = () => import('../components/common/MV');
-const AppVideo = () => import('../components/common/video');
-const AppSongSheet = () => import('../components/common/songsheet');
-const AppSignIn = () => import('../components/common/signin')
-const AppUser = () => import('../components/common/user');
+const AppHome = () => import('@/view/home');
+const AppRank = () => import('@/view/rank');
+const AppSinger = () => import('@/view/singer');
+const AppMv = () => import('@/view/MV');
+const AppVideo = () => import('@/view/video');
+const AppSongSheet = () => import('@/view/songsheet');
+const AppSignIn = () => import('@/view/signin')
+const AppUser = () => import('components/common/user');
 Vue.use(Router);
 
 const router =  new Router({
@@ -84,7 +84,7 @@ const router =  new Router({
       component: () => import('../components/common/search')
     }
   ],
-  
+  mode: 'history',
 })
   
 
