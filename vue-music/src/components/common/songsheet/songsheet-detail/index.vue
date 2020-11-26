@@ -31,7 +31,7 @@
             </div>
             <div class="desc">
               <p ref="des"></p>
-              <div class="btn" @click="ellipsis" v-if="des">
+              <div class="btn" @click="ellipsis" v-if="des.length >= 50">
                 <span v-show="show">收起</span>
                 <span v-show="!show">展开</span>
                 <i 
@@ -125,12 +125,10 @@ export default {
 
     // 歌单详情介绍省略
     ellipsis(){
-      if(this.des){
-        if(this.show){
-          this.$refs.des.innerHTML = this.des.substring(0,50) + '...';
-        }else{
+      if(this.des.length >= 50){
+        this.show ?
+          this.$refs.des.innerHTML = this.des.substring(0,50) + '...' :
           this.$refs.des.innerHTML = this.des;
-        }
         this.show = !this.show;
       }
     },

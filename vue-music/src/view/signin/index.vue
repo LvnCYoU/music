@@ -4,7 +4,7 @@
       <div class="wrapper">
         <div class="top">
           <div class="logo">
-            <img src="assets/img/logo-a.png" alt="nicemusic">
+            <img src="@/assets/img/logo-a.png" alt="nicemusic">
             <p>NiceMusic</p>
           </div>
           
@@ -45,8 +45,10 @@
           </el-form>
         </div>        
       </div>
-      <audio src="assets/mp3/Approaching Nirvana - You.mp3" autoplay></audio>
-      <star />
+      <audio src="@/assets/mp3/Approaching Nirvana - You.mp3" autoplay></audio>
+      <keep-alive>
+        <star />  
+      </keep-alive>
     </div>
   </div>
 </template>

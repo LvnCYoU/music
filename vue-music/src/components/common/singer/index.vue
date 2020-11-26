@@ -2,6 +2,7 @@
   <div class="load-more" 
     ref="loading"
     :data="artist"
+    v-loading="loading"
     style="height: 100%; width: 100%"
     >
     <ul class="singer-list">
@@ -48,9 +49,9 @@ export default {
   },
   watch:{
     artist(val){
-      console.log(val)
       if(val.length <= 40){
         this.img = 0;
+        this.loading = true;
         return this.artist = val;
       }
     }
@@ -93,6 +94,7 @@ export default {
 
 <style lang="scss" scoped>
   .load-more{
+    min-height: 700px;
     ul{
       margin: 30px 15px 0;
       display: flex;

@@ -153,6 +153,7 @@ export default {
       this.singerInit(params);
       await this.$api.ArtistList(params)
         .then( res => {
+          console.log(res)
           arrSinger = res.data.artists;
         })
       arrSinger.map( list => {
@@ -167,13 +168,22 @@ export default {
       })
     },
 
+    // 歌手类型选择
     chooseType(str,val){
       let actions = {
-        'area': () => this.params.area = val,
-        'initial': () => this.params.initial = val,
-        'type' : () => this.params.type = val,
+        'area': () => {
+          if(this.params.area === val) return false
+          this.params.area = val;
+          return true;
+        },
+        'initial': () => {
+          if(this.params.initial === val) return false
+          this.params.initial = val;
+          return true;
+        },
+        'type' : () => this.params.type === val ? false : this.params.type = val
       }
-      actions[`${str}`].call(this)
+      if(!actions[`${str}`].call(this))return
       this.params.offset = 0;
       this.singerInit(this.params);
       this.getSinger(this.params);

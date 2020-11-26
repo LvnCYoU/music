@@ -19,6 +19,9 @@ const router =  new Router({
       name: 'home', 
       path: '/home',
       component: AppHome,
+      meta: {
+        keepAlive: true,
+      }
     },
     {path: '/rank',component: AppRank},
     {path: '/singer', component: AppSinger},
@@ -85,6 +88,17 @@ const router =  new Router({
     }
   ],
   mode: 'history',
+})
+
+// 路由跳转页面置顶
+router.afterEach( () => {
+  let top = document.body.scrollTop;
+  let docTop = document.documentElement.scrollTop;
+  if(top != 0) {
+    document.body.scrollTop = 0;
+    return ;
+  }
+  if(docTop != 0) document.documentElement.scrollTop = 0;
 })
   
 

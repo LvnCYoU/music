@@ -2,7 +2,7 @@
   <div class="error">
     <h2>
       <span>当前没有数据噢</span>
-      <img src="assets/img/error.jpg">
+      <img src="@/assets/img/error.jpg">
     </h2>
   </div>
 </template>

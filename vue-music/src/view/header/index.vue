@@ -4,7 +4,7 @@
       <div class="container">
         <div class="left">
           <router-link tag="li" to="/home" class="logo">
-            <img src="assets/img/logo_black.png" alt="">
+            <img src="@/assets/img/logo_black.png" alt="">
           </router-link>
         </div>
         <ul class="main">

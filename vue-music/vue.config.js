@@ -67,25 +67,24 @@ module.exports = {
       .set("@", resolve("src"))
       .set("assets", resolve("src/assets"))
       .set("components", resolve("src/components"))
-      .set('static', path.resolve(__dirname, 'src/static'));
 
     // 移除多余插件 (移动端有效)
     config.plugins.delete('prefetch').delete('preload');
     config.optimization.minimize(true);
     // 压缩图片
-    config.module
-      .rule('images')
-      .use('image-webpack-loader')
-      .loader('image-webpack-loader')
+    const imagesRule = config.module.rule('images')
+    imagesRule.uses.clear()
+    imagesRule.use('file-loader')
+      .loader('url-loader')
       .options({
-        mozjpeg: { progressive: true, quality: 65 },
-        optipng: { enabled: false },
-        pngquant: { quality: [0.65, 0.9], speed: 4 },
-        gifsicle: { interlaced: false },
-      })
-      .end();
-    
-
+        limit: 10240,
+        fallback: {
+        loader: 'file-loader',
+        options: {
+          outputPath: 'static/images'
+        }
+      }
+    })
   },
   devServer: {
     port: 8080,

@@ -1,7 +1,10 @@
 <template>
-  <div id="main">
+  <div class="main">
     <loading v-show="isLoading" /> 
-    <router-view/>
+    <keep-alive>
+      <router-view/>
+    </keep-alive>
+
   </div>
 </template>
 
@@ -19,6 +22,6 @@ export default {
 </script>
 <style lang="scss" scoped>
  .main{
-   height: 100%;
+    min-height: 700px;
  }
 </style>

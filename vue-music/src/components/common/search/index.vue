@@ -23,11 +23,13 @@
         </ul>
       </div>
       <div class="main">
-        <song-list :songLists="list" v-if="cur.type == 1" />
-        <singer :artist="list" v-if="cur.type == 100" />
-        <song-sheet :songLists="list" v-if="cur.type == 1000" />
-        <album :list="list" v-if="cur.type == 10" />
-        <error v-if="!list" />
+        <keep-alive>
+          <song-list :songLists="list" v-if="cur.type == 1" />
+          <singer :artist="list" v-if="cur.type == 100" />
+          <song-sheet :songLists="list" v-if="cur.type == 1000" />
+          <album :list="list" v-if="cur.type == 10" />
+          <error v-if="!list" />
+        </keep-alive>
       </div>
     </div>
   </div>

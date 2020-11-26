@@ -50,6 +50,12 @@ export default {
       required: false,
     }
   },
+  watch: {
+    songLists(){
+      this.loading = true;
+      this.len = 0;
+    }
+  },  
   data(){
     return{
       loading: true,

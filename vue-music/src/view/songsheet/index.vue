@@ -183,10 +183,12 @@ export default {
     classify(e){
       let str = e.target.innerHTML.trim()
       this.params.offset = 0;
-      this.params.cat = str;
-      this.songSheetInit(this.params);
-      this.getSongSheet(this.params);
-      this.show = false;
+      if(this.utils.BtnOnce(str,this.params.cat)){
+        this.params.cat = str;
+        this.songSheetInit(this.params);
+        this.getSongSheet(this.params);
+        this.show = false;
+      }
     },
     
     // 当前页变化

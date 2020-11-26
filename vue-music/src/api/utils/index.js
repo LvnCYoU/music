@@ -162,4 +162,13 @@ export default{
     id = id.substr(0, id.length - 1);
     return id;
   },
+
+  /**
+   * @method 判断按钮是否一致则返回
+   * @params target 目标按钮
+   * @params compare 对比数据
+   */
+  BtnOnce(target,compare){
+    return target == compare ? false : true
+  }
 }
