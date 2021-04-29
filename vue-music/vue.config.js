@@ -1,5 +1,6 @@
 const TerserPlugin = require('terser-webpack-plugin');
 const path = require("path");
+const webpack = require('webpack')
 function resolve(dir) {
   return path.join(__dirname, dir);
 }
@@ -29,6 +30,11 @@ module.exports = {
   },
   // 配置消除console.log
   configureWebpack: config => {
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery',
+      "window.jquery": 'jquery'
+    })
     process.env.NODE_ENV === 'production' &&
       config.plugins.push(
         new TerserPlugin({
@@ -93,12 +99,12 @@ module.exports = {
     hotOnly: true,
     https: false,
     proxy: {
-      '/proxy': { 
+      '/api': { 
         target: process.env.VUE_APP_SERVICE_URL, // 后台接口域名
         ws: true,        //如果要代理 websockets，配置这个参数
         changeOrigin: true,  //是否跨域
         pathRewrite:{
-          '^/proxy':'',
+          ['^ ' + process.env.VUE_APP_BASE_API]:'',
         }
       }, 
     }

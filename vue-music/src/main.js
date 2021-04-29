@@ -11,14 +11,14 @@ import './common/font/iconfont.css'
 import './api/scroll'
 import './common/css/main.scss'
 
-
+console.log(process.env.NODE_ENV,process.env.VUE_APP_SERVICE_URL)
 Vue.component(CollapseTransition.name, CollapseTransition)
-
 
 Vue.config.productionTip = false;
 Vue.prototype.$api = api;
 Vue.prototype.$Message = Message;
 Vue.prototype.utils = utils;
+
 
 new Vue({
   router,

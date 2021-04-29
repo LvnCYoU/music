@@ -4,8 +4,9 @@ import {Message} from 'element-ui';
 import Vuex from '@/store'
 
 const instance = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? '/api' : '/proxy/',
-  timeout: 3000,
+  baseURL: process.env.NODE_ENV === 'production' ? '/api' : '/api/',
+  // baseURL: 'http://localhost:3000',
+  timeout: 6000,
   withCredentials: true,
   headers: {
     'Content-Type':'application/x-www-form-urlencoded',
